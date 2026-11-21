@@ -2,6 +2,7 @@
   "use strict";
 
   // ---------- 저장 ----------
+  var APP_VERSION = "1.11 (2026-11-21)";
   var KEY = "travelEnglish.v1";
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
@@ -466,7 +467,17 @@
     renderLevel(); renderDots(); renderToday(); nextPractice();
 
     if ("serviceWorker" in navigator && location.protocol === "https:") {
-      navigator.serviceWorker.register("sw.js").catch(function () {});
+      navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(function (reg) {
+        TE.swReg = reg;
+        // 앱을 다시 볼 때마다 새 버전 확인
+        document.addEventListener("visibilitychange", function () { if (!document.hidden) reg.update().catch(function () {}); });
+      }).catch(function () {});
+      // 새 버전이 설치되면 한 번 자동으로 새로고침 (공부 기록은 그대로)
+      var reloaded = false, hadCtrl = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (!hadCtrl) { hadCtrl = true; return; }
+        if (reloaded) return; reloaded = true; location.reload();
+      });
     }
   }
 
@@ -476,7 +487,7 @@
   window.TE = {
     state: state, save: save, speak: speak, listen: listen, compare: compare, tokens: tokens,
     dateKey: dateKey, esc: esc, $: $, showResult: showResult, showTab: function (n) { showTab(n); },
-    allSentences: allSentences, byId: byId
+    allSentences: allSentences, byId: byId, version: APP_VERSION
   };
   init();
 })();

@@ -119,3 +119,14 @@
   });
   window.addEventListener("popstate", function () { closeAll(); });
 })();
+
+// ---------- 앱 버전 / 업데이트 ----------
+(function () {
+  var TE = window.TE, $ = TE.$;
+  $("appVer").textContent = "버전 " + TE.version;
+  $("updBtn").onclick = function () {
+    $("updMsg").textContent = "새 버전을 확인하는 중…";
+    var go = function () { location.reload(); };
+    if (TE.swReg) TE.swReg.update().then(function () { setTimeout(go, 800); }, go); else go();
+  };
+})();
