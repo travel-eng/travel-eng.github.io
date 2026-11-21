@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffb38a">
+<meta name="theme-color" content="#2fa4f0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
@@ -301,6 +301,27 @@ details.exp{margin-top:8px;padding:8px 12px}
 .pp-stamp{width:96px;height:96px}
 .seg.mini{margin:2px 0 4px}
 .seg.mini button{min-height:28px;padding:2px 8px;font-size:13px}
+
+/* ===== 산뜻한 색: 하늘+민트 (2026-11-21 사용자 선택) ===== */
+:root{
+  --bg:#eef8ff; --card:#ffffff; --text:#24364a; --muted:#62788f; --line:#cfe6f7;
+  --accent:#2fa4f0; --accent-ink:#ffffff; --ok:#1f9a5c; --ok-bg:#ddf7e8; --bad:#e2554a; --bad-bg:#ffe8e5;
+  --warn-bg:#fff6cf; --warn:#8a6100; --soft:#e2f2ff; --mint:#d8f7ea; --sky:#e2f2ff; --shadow:#c6e0f2;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#13233a; --card:#1c3250; --text:#eaf4ff; --muted:#a9c0d8; --line:#2c4a70;
+    --accent:#5cbcff; --accent-ink:#0f1d30; --ok:#6fe0a0; --ok-bg:#1d4034; --bad:#ff8a7e; --bad-bg:#4a2830;
+    --warn-bg:#3e3a1c; --warn:#ffe07a; --soft:#24406a; --mint:#1f4a40; --sky:#22406a; --shadow:#0c1828;
+  }
+}
+button.primary{box-shadow:0 2px 0 #1f86cc}
+@media (prefers-color-scheme: dark){button.primary{box-shadow:0 2px 0 #2f7fb8}}
+body{background-image:radial-gradient(circle at 12% 8%,rgba(120,200,255,.22) 0 60px,transparent 61px),
+    radial-gradient(circle at 90% 30%,rgba(120,230,190,.20) 0 90px,transparent 91px),
+    radial-gradient(circle at 20% 72%,rgba(255,230,120,.18) 0 70px,transparent 71px)}
+.progress i{background:linear-gradient(90deg,#7fd3ff,#2fa4f0)}
+details.exp summary{color:#8a6100}
 </style>
 </head>
 <body>
