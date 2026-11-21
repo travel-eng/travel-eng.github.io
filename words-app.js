@@ -38,7 +38,8 @@
     if (state.wPos >= WORDS.length) return null; // 단어를 다 배움
     var n = state.wPos < BASIC_COUNT ? BASIC_PER_DAY : state.wPerDay;
     var idx = [];
-    for (var i = state.wPos; i < Math.min(WORDS.length, state.wPos + n); i++) idx.push(i);
+    for (var i = state.wPos; i < WORDS.length && idx.length < n; i++) if (!state.learned[i]) idx.push(i);
+    if (!idx.length) return null;
     state.wToday = { date: t, stage: state.wStage, idx: idx, step: 0, passed: false };
     TE.save();
     return state.wToday;
@@ -81,12 +82,14 @@
   function ensureNeedR() {
     var r = dayRec();
     if (r.needR === undefined) { r.needR = dueList().length > 0; TE.save(); }
+    if (r.needS === undefined && TE.storyAvailable) { r.needS = TE.storyAvailable() >= 0; TE.save(); }
   }
   function dayStatus(key) {
     var r = state.cal[key] || {};
     var s = !!(state.daily[key] && state.daily[key].done);
     var w = !!r.w, rv = !r.needR || !!r.r;
-    return { s: s, w: w, r: rv, needR: !!r.needR, all: s && w && rv, any: s || w || !!r.r };
+    var sd = !!(r.story && r.story.length), so = !r.needS || sd;
+    return { s: s, w: w, r: rv, st: so, stDone: sd, needR: !!r.needR, needS: !!r.needS, all: s && w && rv && so, any: s || w || !!r.r || sd };
   }
   function checkDay() {
     ensureNeedR();
@@ -118,6 +121,7 @@
       { ok: st.s, t: "오늘의 문장 외우기", btn: null },
       { ok: st.w, t: set ? "오늘의 단어 (" + stageName(set.stage) + ")" : "단어 공부 (모두 배웠어요!)", btn: st.w ? null : "words" }
     ];
+    if (st.needS || st.stDone) items.push({ ok: st.stDone, t: "오늘의 이야기 (호주 여행)", btn: st.stDone ? null : "story" });
     if (st.needR) items.push({ ok: st.r, t: "복습" + (due ? " (" + due + "개 남음)" : ""), btn: st.r ? null : "review" });
     var html = items.map(function (it, k) {
       return '<div class="todo"><span class="chk">' + (it.ok ? "✅" : "⬜") + '</span><span class="t">' + esc(it.t) + "</span>" +
@@ -127,6 +131,7 @@
     $("todoList").innerHTML = html;
     Array.prototype.forEach.call($("todoList").querySelectorAll("button[data-go]"), function (b) {
       b.onclick = function () {
+        if (b.dataset.go === "story") { TE.showTab("story"); return; }
         if (b.dataset.go === "review") { mode = "review"; startReview(); }
         else mode = "study";
         TE.showTab("words");
@@ -231,6 +236,7 @@
       '<div class="word-big" id="wBig">' + esc(w.en) + '</div><div class="ko">' + esc(w.ko) + "</div>" +
       '<div class="row"><button class="big" data-say="' + esc(w.en) + '">🔊 듣기</button><button class="big" id="slowW">🐢 천천히</button><button class="big" id="phW">🔤 파닉스</button></div>' +
       '<div class="ex"><div class="label">예문</div><div class="e"><span id="wEx">' + esc(w.ex) + '</span> <button data-say="' + esc(w.ex) + '" style="min-height:36px;padding:4px 10px">🔊</button></div><div class="k">' + esc(w.exko) + '</div><div id="wExExp"></div></div>' +
+      (window.ETYM && window.ETYM[w.en.toLowerCase()] ? '<div class="etym"><div class="label">🌱 어원 (단어의 뿌리)</div>' + esc(window.ETYM[w.en.toLowerCase()]) + "</div>" : "") +
       (links.length ? '<div class="linked"><div class="label">이 단어가 나오는 여행 문장</div>' + links.map(function (s) {
         return "<div>• " + esc(s.en) + ' <span class="small">' + esc(s.ko) + "</span></div>";
       }).join("") + "</div>" : "") +
@@ -442,7 +448,10 @@
     var words = (r.words || []).map(function (i) { return WORDS[i]; });
     var rev = (r.rev || []).filter(function (i) { return (r.words || []).indexOf(i) < 0; }).map(function (i) { return WORDS[i]; });
     var sents = (r.sent || []).map(function (id) { return TE.byId(id); }).filter(Boolean);
-    var body = sec("📖 새로 배운 단어 (" + words.length + ")", words) +
+    var eps = (r.story || []).map(function (n) { var ep = window.STORY.episodes[n]; return ep ? { en: ep.icon + " " + (n + 1) + "화 " + ep.title, ko: ep.key, say: ep.key } : null; }).filter(Boolean);
+    var body = (eps.length ? '<div class="label" style="margin-top:14px">🇦🇺 호주 여행 이야기</div>' + eps.map(function (x) {
+      return '<div class="list-item"><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k">핵심 문장: ' + esc(x.ko) + '</div></div><button data-say="' + esc(x.say) + '">🔊</button></div>';
+    }).join("") : "") + sec("📖 새로 배운 단어 (" + words.length + ")", words) +
       sec("🔁 복습한 단어 (" + rev.length + ")", rev) +
       sec("💬 공부한 문장 (" + sents.length + ")", sents);
     if (!body) body = '<div class="ko" style="margin-top:12px">이 날은 공부 기록이 없어요.</div>';
@@ -450,7 +459,7 @@
     $("dayTitle").innerHTML = (+p[1]) + "월 " + (+p[2]) + "일 " + badge;
     $("dayBody").innerHTML =
       '<div class="small">' + (st.s ? "✅" : "⬜") + " 오늘의 문장 &nbsp; " + (st.w ? "✅" : "⬜") + " 단어 테스트" +
-      (r.needR ? " &nbsp; " + (r.r ? "✅" : "⬜") + " 복습" : "") + "</div>" + body;
+      (r.needR ? " &nbsp; " + (r.r ? "✅" : "⬜") + " 복습" : "") + (r.needS || st.stDone ? " &nbsp; " + (st.stDone ? "✅" : "⬜") + " 이야기" : "") + "</div>" + body;
     Array.prototype.forEach.call($("dayBody").querySelectorAll("[data-say]"), function (b) {
       b.onclick = function () { TE.speak(b.dataset.say); };
     });
@@ -459,6 +468,11 @@
   $("dayClose").onclick = function () { $("dayModal").classList.add("hidden"); };
   $("dayModal").onclick = function (e) { if (e.target === $("dayModal")) $("dayModal").classList.add("hidden"); };
 
+  TE.addLog = addLog;
+  TE.learnWords = function (list) {
+    list.forEach(function (i) { if (!state.learned[i]) state.learned[i] = { box: 0, due: addDays(today(), INTERVALS[0]) }; });
+    TE.save();
+  };
   TE.learnedWords = function () { return Object.keys(state.learned).map(Number); };
   TE.learnedSentences = function () {
     return Object.keys(state.sentOk || {}).map(function (id) { return TE.byId(id); }).filter(Boolean);

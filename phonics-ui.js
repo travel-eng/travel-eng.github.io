@@ -44,6 +44,8 @@
     } else {
       html += '<div class="ph-tip">이 단어는 아직 파닉스 설명이 없어요. 🔊로 들어 보세요.</div>';
     }
+    var et = window.ETYM && window.ETYM[clean.toLowerCase()];
+    if (et) html += '<div class="etym"><div class="label">🌱 어원 (단어의 뿌리)</div>' + esc(et) + "</div>";
     html += '<div class="row"><button class="big primary" id="phPlay">🔊 듣기</button><button class="big" id="phSlow">🐢 천천히</button></div>';
     $("phBody").innerHTML = html;
     $("phPlay").onclick = function () { TE.speak(clean); };

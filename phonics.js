@@ -248,6 +248,103 @@ yes|jɛs|예스|y=이 e=에 s=ㅅ|
 you|juː|유-|y=이 ou=우-|
 your|jɔr|유어|y=이 our=오어(r)|
 you're|jɔr|유어|y=이 ou're=오어(r)|You are를 줄인 말이에요.
+about|əˈbaʊt|어바웃|a=어 b=ㅂ ou=아우 t=ㅌ|
+ah|ɑ|아|ah=아|
+amazing|əˈmeɪ.zɪŋ|어메이징|a=어 m=ㅁ a=에이 z=ㅈ i=이 ng=ㅇ|
+an|ən|언|a=어 n=ㄴ|모음 소리 앞에서 a 대신 an을 써요.
+are|ɑr|아-(r)|ar=아(r) e=(소리 안 남)|문장 속에서는 약하게 '어(r)'로 들려요.
+australia|ɔˈstreɪl.jə|오스트레일리아|Au=오 s=ㅅ t=ㅌ r=ㄹ(r) a=에이 l=ㄹ ia=이어|호주 사람들은 '오스트레일리아'를 빠르게 '어스트레일야'처럼도 말해요.
+back|bæk|백|b=ㅂ a=애 ck=ㅋ|
+beef|biːf|비-프|b=ㅂ ee=이- f=ㅍ(f)|
+between|bɪˈtwiːn|비트위-인|b=ㅂ e=이 t=ㅌ w=우 ee=이- n=ㄴ|
+buy|baɪ|바이|b=ㅂ uy=아이|u는 소리가 안 나요. by, bye와 소리가 같아요.
+cafe|kæˈfeɪ|캐페이|c=ㅋ a=애 f=ㅍ(f) e=에이|
+can't|kænt|캔트|c=ㅋ a=애 n't=ㄴ트|can not을 줄인 말이에요. 호주·영국은 '칸트'처럼 말해요.
+central|ˈsɛn.trəl|센트럴|c=ㅅ e=에 n=ㄴ t=ㅌ r=ㄹ(r) al=얼|
+charge|tʃɑrdʒ|차-(r)지|ch=ㅊ ar=아(r) ge=지|
+charger|ˈtʃɑr.dʒər|차-저|ch=ㅊ ar=아(r) g=ㅈ er=어(r)|
+cheese|tʃiːz|치-즈|ch=ㅊ ee=이- s=ㅈ e=(소리 안 남)|
+chicken|ˈtʃɪk.ɪn|치킨|ch=ㅊ i=이 ck=ㅋ e=이 n=ㄴ|
+confirmation|ˌkɑn.fərˈmeɪ.ʃən|칸퍼메이션|c=ㅋ o=아 n=ㄴ f=ㅍ(f) ir=어(r) m=ㅁ a=에이 tion=션|
+course|kɔrs|코어스|c=ㅋ our=오어(r) se=ㅅ|
+credit|ˈkrɛd.ɪt|크레딧|c=ㅋ r=ㄹ(r) e=에 d=ㄷ i=이 t=ㅌ|
+declare|dɪˈklɛr|디클레어|d=ㄷ e=이 c=ㅋ l=ㄹ are=에어(r)|
+declaring|dɪˈklɛr.ɪŋ|디클레어링|d=ㄷ e=이 c=ㅋ l=ㄹ ar=에어(r) i=이 ng=ㅇ|
+different|ˈdɪf.rənt|디프런트|d=ㄷ i=이 ff=ㅍ(f) e=(거의 안 들림) r=ㄹ(r) e=어 n=ㄴ t=ㅌ|가운데 e는 거의 안 들려서 세 음절이 아니라 '디프런트' 두 덩어리처럼 말해요.
+dollar|ˈdɑl.ər|달러|d=ㄷ o=아 ll=ㄹ ar=어(r)|
+dollars|ˈdɑl.ərz|달러즈|d=ㄷ o=아 ll=ㄹ ar=어(r) s=ㅈ|
+dried|draɪd|드라이드|d=ㄷ r=ㄹ(r) ie=아이 d=ㄷ|
+email|ˈiː.meɪl|이-메일|e=이- m=ㅁ ai=에이 l=ㄹ|
+emma|ˈɛm.ə|에마|E=에 mm=ㅁ a=어|
+enjoy|ɪnˈdʒɔɪ|인조이|e=이 n=ㄴ j=ㅈ oy=오이|
+everything|ˈɛv.ri.θɪŋ|에브리씽|e=에 v=ㅂ(v) e=(소리 안 남) r=ㄹ(r) y=이 th=ㅆ(th) i=이 ng=ㅇ|
+find|faɪnd|파인드|f=ㅍ(f) i=아이 n=ㄴ d=ㄷ|
+fine|faɪn|파인|f=ㅍ(f) i=아이 n=ㄴ e=(소리 안 남)|
+first|fɜrst|퍼-스트|f=ㅍ(f) ir=어(r) s=ㅅ t=ㅌ|
+flag|flæɡ|플래그|f=ㅍ(f) l=ㄹ a=애 g=ㄱ|
+flags|flæɡz|플래그즈|f=ㅍ(f) l=ㄹ a=애 g=ㄱ s=ㅈ|
+flat|flæt|플랫|f=ㅍ(f) l=ㄹ a=애 t=ㅌ|
+flying|ˈflaɪ.ɪŋ|플라잉|f=ㅍ(f) l=ㄹ y=아이 i=이 ng=ㅇ|
+food|fuːd|푸-드|f=ㅍ(f) oo=우- d=ㄷ|
+going|ˈɡoʊ.ɪŋ|고우잉|g=ㄱ o=오우 i=이 ng=ㅇ|
+haven't|ˈhæv.ənt|해븐트|h=ㅎ a=애 v=ㅂ(v) e=어 n't=ㄴ트|have not을 줄인 말이에요.
+hi|haɪ|하이|h=ㅎ i=아이|
+if|ɪf|이프|i=이 f=ㅍ(f)|
+isn't|ˈɪz.ənt|이즌트|i=이 s=ㅈ n't=은트|is not을 줄인 말이에요.
+keyring|ˈkiː.rɪŋ|키-링|k=ㅋ ey=이- r=ㄹ(r) i=이 ng=ㅇ|
+koala|koʊˈɑː.lə|코우알-러|k=ㅋ o=오우 a=아- l=ㄹ a=어|가운데 '알'을 세게 읽어요.
+live|lɪv|리브|l=ㄹ i=이 ve=ㅂ(v)|'살다'는 짧은 '리브'. '라이브(생방송)'와 달라요.
+love|lʌv|러브|l=ㄹ o=어 ve=ㅂ(v)|
+lovely|ˈlʌv.li|러블리|l=ㄹ o=어 v=ㅂ(v) e=(소리 안 남) l=ㄹ y=이|
+mate|meɪt|메이트|m=ㅁ a=에이 t=ㅌ e=(소리 안 남)|호주 사람들은 '마이트'처럼 발음하기도 해요.
+may|meɪ|메이|m=ㅁ ay=에이|
+milk|mɪlk|밀크|m=ㅁ i=이 l=ㄹ k=ㅋ|
+miss|mɪs|미스|m=ㅁ i=이 ss=ㅅ|
+morning|ˈmɔr.nɪŋ|모-닝|m=ㅁ or=오어(r) n=ㄴ i=이 ng=ㅇ|
+name|neɪm|네임|n=ㄴ a=에이 m=ㅁ e=(소리 안 남)|
+next|nɛkst|넥스트|n=ㄴ e=에 x=ㅋㅅ t=ㅌ|
+off|ɔf|오프|o=오 ff=ㅍ(f)|
+oh|oʊ|오우|oh=오우|
+or|ɔr|오어|or=오어(r)|
+platform|ˈplæt.fɔrm|플랫폼|p=ㅍ l=ㄹ a=애 t=ㅌ f=ㅍ(f) or=오어(r) m=ㅁ|
+purpose|ˈpɜr.pəs|퍼-퍼스|p=ㅍ ur=어(r) p=ㅍ o=어 se=ㅅ|'퍼포즈'가 아니라 '퍼-퍼스'예요.
+really|ˈriː.li|리-얼리|r=ㄹ(r) ea=이- ll=ㄹ y=이|
+red|rɛd|레드|r=ㄹ(r) e=에 d=ㄷ|
+safe|seɪf|세이프|s=ㅅ a=에이 f=ㅍ(f) e=(소리 안 남)|
+seaweed|ˈsiː.wiːd|시-위-드|s=ㅅ ea=이- w=우 ee=이- d=ㄷ|
+seven|ˈsɛv.ən|세븐|s=ㅅ e=에 v=ㅂ(v) e=어 n=ㄴ|
+shop|ʃɑp|샵|sh=시 o=아 p=ㅍ|
+soon|suːn|순-|s=ㅅ oo=우- n=ㄴ|
+spelling|ˈspɛl.ɪŋ|스펠링|s=ㅅ p=ㅍ e=에 ll=ㄹ i=이 ng=ㅇ|
+steamed|stiːmd|스팀-드|s=ㅅ t=ㅌ ea=이- m=ㅁ ed=ㄷ|
+strong|strɔŋ|스트롱|s=ㅅ t=ㅌ r=ㄹ(r) o=오 ng=ㅇ|
+sun|sʌn|선|s=ㅅ u=어 n=ㄴ|son(아들)과 소리가 같아요.
+sunscreen|ˈsʌn.skriːn|선스크린-|s=ㅅ u=어 n=ㄴ s=ㅅ c=ㅋ r=ㄹ(r) ee=이- n=ㄴ|
+sure|ʃʊr|슈어|s=시 ure=우어(r)|s가 '시' 소리예요.
+swim|swɪm|스윔|s=ㅅ w=우 i=이 m=ㅁ|
+swimsuit|ˈswɪm.suːt|스윔수-트|s=ㅅ w=우 i=이 m=ㅁ s=ㅅ ui=우- t=ㅌ|
+sydney|ˈsɪd.ni|시드니|S=ㅅ y=이 d=ㄷ n=ㄴ ey=이|
+tap|tæp|탭|t=ㅌ a=애 p=ㅍ|
+that's|ðæts|댓츠|th=ㄷ(th) a=애 t's=ㅊ|That is를 줄인 말이에요.
+there's|ðɛrz|데어즈|th=ㄷ(th) ere=에어(r) 's=ㅈ|There is를 줄인 말이에요.
+thirty-five|ˈθɜr.di faɪv|써-디 파이브|th=ㅆ(th) ir=어(r) t=ㄷ y=이 f=ㅍ(f) i=아이 v=ㅂ(v) e=(소리 안 남)|미국에서는 thirty의 t가 'ㄷ/ㄹ'처럼 부드러워져요.
+touch|tʌtʃ|터치|t=ㅌ ou=어 ch=치|ou가 '어'예요.
+train|treɪn|트레인|t=ㅌ r=ㄹ(r) ai=에이 n=ㄴ|tr은 '츄'처럼도 들려요.
+tried|traɪd|트라이드|t=ㅌ r=ㄹ(r) ie=아이 d=ㄷ|
+trip|trɪp|트립|t=ㅌ r=ㄹ(r) i=이 p=ㅍ|
+twenty|ˈtwɛn.ti|트웬티|t=ㅌ w=우 e=에 n=ㄴ t=ㅌ y=이|미국에서는 t가 빠져 '트웨니'처럼도 들려요.
+under|ˈʌn.dər|언더|u=어 n=ㄴ d=ㄷ er=어(r)|
+visit|ˈvɪz.ɪt|비짓|v=ㅂ(v) i=이 s=ㅈ i=이 t=ㅌ|s가 'ㅈ' 소리예요.
+want|wɑnt|원트|w=우 a=아 n=ㄴ t=ㅌ|'원트'와 '완트' 사이 소리예요.
+welcome|ˈwɛl.kəm|웰컴|w=우 e=에 l=ㄹ c=ㅋ o=어 m=ㅁ e=(소리 안 남)|
+white|waɪt|와이트|wh=우 i=아이 t=ㅌ e=(소리 안 남)|
+with|wɪð|위드|w=우 i=이 th=ㄷ(th)|
+worries|ˈwɜr.iz|워-리즈|w=우 o=어 rr=ㄹ(r) ie=이 s=ㅈ|
+would|wʊd|우드|w=우 ou=우 l=(소리 안 남) d=ㄷ|l은 소리가 안 나요! wood(나무)와 소리가 같아요.
+wow|waʊ|와우|w=우 o=아 w=우|
+yellow|ˈjɛl.oʊ|옐로우|y=이 e=에 ll=ㄹ ow=오우|
+you'll|juːl|유-일|y=이 ou=우- 'll=ㄹ|You will을 줄인 말이에요.
+across|əˈkrɔs|어크로스|a=어 c=ㅋ r=ㄹ(r) o=오 ss=ㅅ|
 `;
 
 // 소리 기호별 공통 팁

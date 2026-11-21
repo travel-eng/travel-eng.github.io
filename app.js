@@ -33,6 +33,11 @@
     state.mine.forEach(function (s, i) {
       list.push({ id: "m" + s.t, cat: "mine", en: s.en, ko: s.ko });
     });
+    if (window.STORY) window.STORY.episodes.forEach(function (ep, n) {
+      ep.lines.forEach(function (l, k) {
+        if (l.who === "me") list.push({ id: "s" + n + "_" + k, cat: "story", en: l.en, ko: l.ko });
+      });
+    });
     list.forEach(function (s) { s.level = levelOf(s.en); });
     return list;
   }
@@ -343,7 +348,7 @@
   function showResult(el, kind, html) { el.innerHTML = '<div class="result ' + kind + '">' + html + "</div>"; }
   function alertBox(msg) { var w = $("browserWarn"); w.textContent = msg; w.classList.remove("hidden"); }
   function showTab(name) {
-    ["today", "words", "game", "practice", "list", "settings"].forEach(function (t) {
+    ["today", "story", "words", "game", "practice", "list", "settings"].forEach(function (t) {
       $("tab-" + t).classList.toggle("hidden", t !== name);
     });
     Array.prototype.forEach.call(document.querySelectorAll("nav button"), function (b) {
@@ -353,6 +358,7 @@
     if (name === "today") { renderToday(); if (window.TE.renderCalendar) window.TE.renderCalendar(); }
     if (name === "words" && window.TE.renderWords) window.TE.renderWords();
     if (name === "game" && window.TE.renderGame) window.TE.renderGame();
+    if (name === "story" && window.TE.renderStory) window.TE.renderStory();
     if (name === "settings" && window.TE.renderWordSettings) window.TE.renderWordSettings();
     window.scrollTo(0, 0);
   }

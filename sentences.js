@@ -87,5 +87,6 @@ window.CATEGORIES = {
   directions: "길 찾기·교통",
   emergency: "응급·도움",
   basic: "기본 표현",
+  story: "호주 여행 이야기",
   mine: "내가 추가한 문장"
 };
