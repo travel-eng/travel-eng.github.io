@@ -1,6 +1,6 @@
 // 앱 파일을 저장해 두어 인터넷이 약해도 화면이 열리게 함 (말하기 인식은 인터넷 필요)
-var CACHE = "travel-english-v12";
-var FILES = ["./", "index.html", "app.js", "sentences.js", "words.js", "words-app.js", "story.js", "story-app.js", "etym.js", "game.js", "explain.js", "phonics.js", "phonics-ui.js", "manifest.webmanifest", "kangaroo-192.png", "kangaroo-512.png"];
+var CACHE = "travel-english-v13";
+var FILES = ["./", "index.html", "app.js", "sentences.js", "words.js", "words-app.js", "story.js", "story-app.js", "etym.js", "game.js", "explain.js", "phonics.js", "phonics-ui.js", "manifest.webmanifest", "plane-192.png", "plane-512.png"];
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
   self.skipWaiting();

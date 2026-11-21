@@ -9,18 +9,18 @@
   "lang": "ko",
   "icons": [
     {
-      "src": "kangaroo-192.png",
+      "src": "plane-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "kangaroo-512.png",
+      "src": "plane-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "kangaroo-512.png",
+      "src": "plane-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
