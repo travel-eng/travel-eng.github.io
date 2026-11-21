@@ -228,9 +228,9 @@
     box(reviewBanner() + '<div class="card">' + header(set) +
       '<div class="progress"><i style="width:' + ((card + 1) / set.idx.length * 100) + '%"></i></div>' +
       '<div class="small">' + (card + 1) + " / " + set.idx.length + "</div>" +
-      '<div class="word-big">' + esc(w.en) + '</div><div class="ko">' + esc(w.ko) + "</div>" +
-      '<div class="row"><button class="big" data-say="' + esc(w.en) + '">🔊 듣기</button><button class="big" id="slowW">🐢 천천히</button></div>' +
-      '<div class="ex"><div class="label">예문</div><div class="e">' + esc(w.ex) + ' <button data-say="' + esc(w.ex) + '" style="min-height:36px;padding:4px 10px">🔊</button></div><div class="k">' + esc(w.exko) + "</div></div>" +
+      '<div class="word-big" id="wBig">' + esc(w.en) + '</div><div class="ko">' + esc(w.ko) + "</div>" +
+      '<div class="row"><button class="big" data-say="' + esc(w.en) + '">🔊 듣기</button><button class="big" id="slowW">🐢 천천히</button><button class="big" id="phW">🔤 파닉스</button></div>' +
+      '<div class="ex"><div class="label">예문</div><div class="e"><span id="wEx">' + esc(w.ex) + '</span> <button data-say="' + esc(w.ex) + '" style="min-height:36px;padding:4px 10px">🔊</button></div><div class="k">' + esc(w.exko) + '</div><div id="wExExp"></div></div>' +
       (links.length ? '<div class="linked"><div class="label">이 단어가 나오는 여행 문장</div>' + links.map(function (s) {
         return "<div>• " + esc(s.en) + ' <span class="small">' + esc(s.ko) + "</span></div>";
       }).join("") + "</div>" : "") +
@@ -240,6 +240,11 @@
       "</div></div>");
     bindSpeakButtons(); bindReview();
     $("slowW").onclick = function () { TE.speak(w.en, true); };
+    if (TE.decorate) { TE.decorate($("wEx"), $("wExExp")); TE.decorate($("wBig"), null); }
+    $("phW").onclick = function () {
+      // 두 단어짜리(thank you 등)는 첫 단어부터 보여 주고, 나머지는 예문에서 눌러 보게 함
+      if (TE.showPhonics) TE.showPhonics(w.en.split(" ")[0]);
+    };
     $("prevW").onclick = function () { card--; renderStudy(set, readOnly); };
     if ($("nextW")) $("nextW").onclick = function () { card++; renderStudy(set, readOnly); };
     if ($("toSpeak")) $("toSpeak").onclick = function () { set.step = 1; card = 0; TE.save(); renderWords(); };

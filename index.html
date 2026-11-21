@@ -123,6 +123,25 @@ select,input[type=text]{font:inherit;width:100%;padding:12px;border-radius:12px;
 .build-tiles{display:flex;flex-wrap:wrap;gap:8px}
 .build-tiles .tile{min-height:46px;padding:8px 14px}
 nav button{padding:10px 2px;font-size:12px}
+/* 해설·파닉스 */
+.w-tap{cursor:pointer;border-bottom:2px dotted var(--accent);padding:0 1px}
+.w-tap:active{background:var(--accent);color:var(--accent-ink);border-radius:4px}
+.tap-hint{font-size:12px;color:var(--muted);margin-top:2px}
+details.exp{margin-top:12px;background:var(--warn-bg);border-radius:12px;padding:10px 14px}
+details.exp summary{cursor:pointer;font-weight:700;color:var(--warn);font-size:15px}
+details.exp .parts{margin:10px 0 6px;display:flex;flex-wrap:wrap;gap:6px}
+details.exp .parts span{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 8px;font-size:14px}
+details.exp .parts b{display:block;font-size:15px}
+details.exp .why{font-size:15px;line-height:1.6;color:var(--text)}
+.ph-word{font-size:40px;font-weight:800;text-align:center;margin:8px 0 0}
+.ph-ipa{text-align:center;color:var(--muted);font-size:18px}
+.ph-ko{text-align:center;font-size:20px;font-weight:700;margin:4px 0 10px}
+.ph-chunks{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:10px 0}
+.ph-chunk{border:2px solid var(--line);border-radius:12px;padding:6px 10px;text-align:center;min-width:48px;background:var(--bg)}
+.ph-chunk .l{font-size:24px;font-weight:800;color:var(--accent)}
+.ph-chunk .s{font-size:15px}
+.ph-chunk.silent{opacity:.5;border-style:dashed}
+.ph-tip{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:15px}
 .day-box{max-height:85vh;overflow-y:auto;text-align:left}
 .cal-grid .d[data-day]{cursor:pointer}
 .stamp-msg{font-size:18px;font-weight:700;margin-bottom:16px}
@@ -144,6 +163,7 @@ nav button{font-size:13px}
       <div class="label" id="todayDate">오늘의 문장</div>
       <div class="en" id="todayEn"></div>
       <div class="ko" id="todayKo"></div>
+      <div id="todayExp"></div>
       <div class="row">
         <button class="big" id="todayListen">🔊 듣기</button>
         <button class="big" id="todaySlow">🐢 천천히</button>
@@ -190,6 +210,7 @@ nav button{font-size:13px}
       <div class="label" id="practiceInfo"></div>
       <div class="en" id="pEn"></div>
       <div class="ko" id="pKo"></div>
+      <div id="pExp"></div>
       <div class="row">
         <button class="big" id="pListen">🔊 듣기</button>
         <button class="big" id="pSlow">🐢 천천히</button>
@@ -283,11 +304,21 @@ nav button{font-size:13px}
   </div>
 </div>
 
+<div id="phModal" class="stamp-modal hidden" role="dialog" aria-label="파닉스">
+  <div class="stamp-box day-box">
+    <div class="cal-head"><div class="label" style="margin:0">🔤 파닉스 (글자와 소리)</div><button id="phClose" aria-label="닫기">✕</button></div>
+    <div id="phBody"></div>
+  </div>
+</div>
+
 <script src="sentences.js"></script>
 <script src="words.js"></script>
 <script src="app.js"></script>
 <script src="words-app.js"></script>
 <script src="game.js"></script>
+<script src="explain.js"></script>
+<script src="phonics.js"></script>
+<script src="phonics-ui.js"></script>
 
 </body>
 </html>

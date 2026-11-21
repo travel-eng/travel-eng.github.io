@@ -262,6 +262,7 @@
     var d = new Date();
     $("todayDate").textContent = (d.getMonth() + 1) + "월 " + d.getDate() + "일 · 오늘의 문장";
     $("todayEn").textContent = s.en;
+    if (window.TE && TE.decorate) TE.decorate($("todayEn"), $("todayExp"));
     $("todayKo").textContent = s.ko;
     var done = state.daily[dateKey()].done;
     var btn = $("todayDone");
@@ -279,6 +280,7 @@
     if (p.length > 1 && current) p = p.filter(function (s) { return s.id !== current.id; });
     current = p[Math.floor(Math.random() * p.length)];
     $("pEn").textContent = current.en;
+    if (window.TE && TE.decorate) TE.decorate($("pEn"), $("pExp"));
     $("pKo").textContent = current.ko;
     $("pResult").innerHTML = "";
     var n = pool(state.level, state.cat).length;
