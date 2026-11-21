@@ -96,3 +96,26 @@
     decorate(el, $(id === "todayEn" ? "todayExp" : "pExp"));
   });
 })();
+
+// ---------- 팝업 공통: 아래 닫기 버튼, 바깥 누르기, 폰 뒤로가기 ----------
+(function () {
+  var $ = window.TE.$;
+  var IDS = ["phModal", "dayModal", "stampModal"];
+  function isOpen(id) { var m = $(id); return m && !m.classList.contains("hidden"); }
+  function closeAll() { IDS.forEach(function (id) { var m = $(id); if (m && !m.classList.contains("hidden")) { var c = id === "stampModal" ? $("stampClose") : null; if (c) c.click(); else m.classList.add("hidden"); } }); }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) {
+    b.onclick = function () { $(b.dataset.close).classList.add("hidden"); };
+  });
+  // 팝업이 열리면 뒤로가기 기록을 하나 넣어서, 폰 뒤로가기 버튼으로 닫히게 함
+  IDS.forEach(function (id) {
+    var m = $(id); if (!m) return;
+    var was = isOpen(id);
+    new MutationObserver(function () {
+      var now = isOpen(id);
+      if (now && !was) { try { history.pushState({ modal: id }, ""); } catch (e) {} }
+      if (!now && was && history.state && history.state.modal === id) { try { history.back(); } catch (e) {} }
+      was = now;
+    }).observe(m, { attributes: true, attributeFilter: ["class"] });
+  });
+  window.addEventListener("popstate", function () { closeAll(); });
+})();

@@ -145,6 +145,8 @@ details.exp .why{font-size:15px;line-height:1.6;color:var(--text)}
 .ph-chunk .s{font-size:15px}
 .ph-chunk.silent{opacity:.5;border-style:dashed}
 .ph-tip{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:15px}
+.day-box .cal-head{position:sticky;top:-24px;background:var(--card);z-index:2;padding:6px 0;margin-top:-6px}
+.modal-close-btm{width:100%;margin-top:16px;position:sticky;bottom:0}
 .day-box{max-height:85vh;overflow-y:auto;text-align:left}
 .cal-grid .d[data-day]{cursor:pointer}
 .stamp-msg{font-size:18px;font-weight:700;margin-bottom:16px}
@@ -397,6 +399,7 @@ details.exp{border-radius:18px}
   <div class="stamp-box day-box">
     <div class="cal-head"><div class="cal-title" id="dayTitle"></div><button id="dayClose" aria-label="닫기">✕</button></div>
     <div id="dayBody" style="text-align:left"></div>
+    <button class="big modal-close-btm" data-close="dayModal">닫기 ✕</button>
   </div>
 </div>
 
@@ -404,6 +407,7 @@ details.exp{border-radius:18px}
   <div class="stamp-box day-box">
     <div class="cal-head"><div class="label" style="margin:0">🔤 파닉스 (글자와 소리)</div><button id="phClose" aria-label="닫기">✕</button></div>
     <div id="phBody"></div>
+    <button class="big modal-close-btm" data-close="phModal">닫기 ✕</button>
   </div>
 </div>
 
