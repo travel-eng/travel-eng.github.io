@@ -402,14 +402,15 @@
   function showResult(el, kind, html) { el.innerHTML = '<div class="result ' + kind + '">' + html + "</div>"; }
   function alertBox(msg) { var w = $("browserWarn"); w.textContent = msg; w.classList.remove("hidden"); }
   function showTab(name) {
-    ["today", "story", "words", "game", "practice", "list", "settings"].forEach(function (t) {
+    ["today", "story", "words", "game", "practice", "cal", "settings"].forEach(function (t) {
       $("tab-" + t).classList.toggle("hidden", t !== name);
     });
     Array.prototype.forEach.call(document.querySelectorAll("nav button"), function (b) {
       b.classList.toggle("on", b.dataset.tab === name);
     });
-    if (name === "list") renderList();
+    if (name === "settings") renderList();
     if (name === "today") { renderToday(); if (window.TE.renderCalendar) window.TE.renderCalendar(); }
+    if (name === "cal" && window.TE.renderCalendar) window.TE.renderCalendar();
     if (name === "words" && window.TE.renderWords) window.TE.renderWords();
     if (name === "game" && window.TE.renderGame) window.TE.renderGame();
     if (name === "story" && window.TE.renderStory) window.TE.renderStory();
