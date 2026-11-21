@@ -9,7 +9,7 @@
     if (f.length < 4) return;
     DICT[f[0]] = {
       w: f[0], ipa: f[1], ko: f[2], tip: f[4] || "",
-      chunks: f[3].split(" ").map(function (c) { var k = c.indexOf("="); return { l: c.slice(0, k), s: c.slice(k + 1) }; })
+      chunks: f[3].split(/ (?=[^ ]*=)/).map(function (c) { var k = c.indexOf("="); return { l: c.slice(0, k), s: c.slice(k + 1) }; })
     };
   });
   function keyOf(word) {
@@ -100,7 +100,7 @@
 // ---------- 팝업 공통: 아래 닫기 버튼, 바깥 누르기, 폰 뒤로가기 ----------
 (function () {
   var $ = window.TE.$;
-  var IDS = ["phModal", "dayModal", "stampModal"];
+  var IDS = ["phModal", "dayModal", "stampModal", "srModal"];
   function isOpen(id) { var m = $(id); return m && !m.classList.contains("hidden"); }
   function closeAll() { IDS.forEach(function (id) { var m = $(id); if (m && !m.classList.contains("hidden")) { var c = id === "stampModal" ? $("stampClose") : null; if (c) c.click(); else m.classList.add("hidden"); } }); }
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) {
@@ -117,7 +117,11 @@
       was = now;
     }).observe(m, { attributes: true, attributeFilter: ["class"] });
   });
-  window.addEventListener("popstate", function () { closeAll(); });
+  window.addEventListener("popstate", function () {
+    // 겹친 팝업은 위의 것만 닫기 (아래 팝업의 기록이 남아 있으면 그대로 둠)
+    var keep = history.state && history.state.modal;
+    IDS.forEach(function (id) { if (id !== keep && isOpen(id)) { var c = id === "stampModal" ? $("stampClose") : null; if (c) c.click(); else $(id).classList.add("hidden"); } });
+  });
 })();
 
 // ---------- 앱 버전 / 업데이트 ----------
@@ -129,4 +133,71 @@
     var go = function () { location.reload(); };
     if (TE.swReg) TE.swReg.update().then(function () { setTimeout(go, 800); }, go); else go();
   };
+})();
+
+// ---------- 🔍 영어로 뭐예요? (앱 안 단어·문장에서 찾기) ----------
+(function () {
+  var TE = window.TE, $ = TE.$, esc = TE.esc;
+  function items() {
+    var list = [], seen = {};
+    (window.WORDS || []).forEach(function (w) {
+      var k = w.en.toLowerCase(); if (seen[k]) return; seen[k] = 1;
+      list.push({ en: w.en, ko: w.ko, kind: "단어", ex: w.ex, exko: w.exko });
+    });
+    TE.allSentences().forEach(function (s) {
+      var k = s.en.toLowerCase(); if (seen[k]) return; seen[k] = 1;
+      list.push({ en: s.en, ko: s.ko, kind: "문장" });
+    });
+    return list;
+  }
+  function hl(text, q) {
+    var i = text.toLowerCase().indexOf(q.toLowerCase());
+    if (i < 0 || !q) return esc(text);
+    return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
+  }
+  function search() {
+    var q = $("srInput").value.trim();
+    var body = $("srBody");
+    if (!q) { body.innerHTML = '<div class="small" style="margin-top:8px">앱에 들어 있는 단어 ' + (window.WORDS || []).length + '개와 문장에서 찾아요. 결과를 누르면 발음(파닉스)과 어원이 나와요.</div>'; return; }
+    var ql = q.toLowerCase();
+    var res = items().filter(function (x) { return x.ko.indexOf(q) >= 0 || x.en.toLowerCase().indexOf(ql) >= 0 || (x.exko && x.exko.indexOf(q) >= 0); });
+    function rank(x) { var r = x.kind === "단어" ? 0 : 2; if (x.ko.indexOf(q) < 0 && x.en.toLowerCase().indexOf(ql) < 0) r += 3; if (x.ko === q || x.en.toLowerCase() === ql) r -= 1; return r; }
+    res.sort(function (a, b) { return rank(a) - rank(b); });
+    res = res.slice(0, 20);
+    var html = res.map(function (x, n) {
+      var exLine = x.kind === "단어" && x.ko.indexOf(q) < 0 && x.exko && x.exko.indexOf(q) >= 0 ? '<div class="k">예문: ' + hl(x.exko, q) + "</div>" : "";
+      return '<div class="list-item" data-n="' + n + '"><div class="txt"><div class="e">' + hl(x.en, q) + ' <span class="tag">' + x.kind + '</span></div><div class="k">' + hl(x.ko, q) + "</div>" + exLine +
+        '</div><button data-say="' + esc(x.en) + '">🔊</button></div>';
+    }).join("");
+    if (!res.length) html = '<div class="result info">앱 단어장에는 아직 없는 말이에요.</div>';
+    var enc = encodeURIComponent(q);
+    html += '<div class="small" style="margin-top:10px">앱에 없는 말은 사전에서 찾아보세요 (인터넷 창이 열려요):</div>' +
+      '<div class="row"><a class="big ext" target="_blank" rel="noopener" href="https://en.dict.naver.com/#/search?query=' + enc + '">네이버 영어사전</a>' +
+      '<a class="big ext" target="_blank" rel="noopener" href="https://translate.google.com/?sl=ko&tl=en&text=' + enc + '">구글 번역</a></div>';
+    body.innerHTML = html;
+    Array.prototype.forEach.call(body.querySelectorAll("[data-say]"), function (b) {
+      b.onclick = function (e) { e.stopPropagation(); TE.speak(b.dataset.say); };
+    });
+    Array.prototype.forEach.call(body.querySelectorAll(".list-item"), function (row) {
+      row.onclick = function () {
+        var x = res[+row.dataset.n];
+        if (x.kind === "단어" && x.en.indexOf(" ") < 0) { TE.showPhonics(x.en); return; }
+        // 여러 단어면 단어별로 눌러 볼 수 있게 보여 주기
+        $("phBody").innerHTML = '<div class="ph-word" style="font-size:24px" id="phSent"></div><div class="ko" style="text-align:center">' + esc(x.ko) + "</div>" +
+          '<div class="small" style="text-align:center;margin-top:6px">👆 단어를 누르면 발음과 어원이 나와요</div>' +
+          (TE.explainHtml ? TE.explainHtml(x.en) : "") +
+          '<div class="row"><button class="big primary" id="phPlay">🔊 듣기</button><button class="big" id="phSlow">🐢 천천히</button></div>';
+        $("phSent").textContent = x.en;
+        TE.decorate($("phSent"), null);
+        $("phPlay").onclick = function () { TE.speak(x.en); };
+        $("phSlow").onclick = function () { TE.speak(x.en, true); };
+        $("phModal").classList.remove("hidden");
+        TE.speak(x.en);
+      };
+    });
+  }
+  $("srOpen").onclick = function () { $("srModal").classList.remove("hidden"); search(); setTimeout(function () { $("srInput").focus(); }, 50); };
+  $("srClose").onclick = function () { $("srModal").classList.add("hidden"); };
+  $("srModal").onclick = function (e) { if (e.target === $("srModal")) $("srModal").classList.add("hidden"); };
+  $("srInput").oninput = search;
 })();
