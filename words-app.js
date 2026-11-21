@@ -265,11 +265,9 @@
       '<div class="progress"><i style="width:' + ((card + 1) / set.idx.length * 100) + '%"></i></div>' +
       '<div class="small">' + (card + 1) + " / " + set.idx.length + " · 듣고 따라 말해 보세요</div>" +
       '<div class="word-big">' + esc(w.en) + '</div><div class="ko">' + esc(w.ko) + "</div>" +
-      '<div class="row"><button class="big" data-say="' + esc(w.en) + '">🔊 듣기</button></div>' +
-      '<div class="row"><button class="big mic primary" id="wMic">🎤 따라 말하기</button></div>' +
+      '<div class="row"><button class="big" data-say="' + esc(w.en) + '">🔊 듣기</button><button class="big mic primary" id="wMic">🎤 단어 말하기</button><button class="big" id="wMicEx">🎤 예문 말하기</button></div>' +
       '<div id="wResult"></div>' +
-      '<div class="small" style="margin-top:8px">짧은 단어는 폰이 잘 못 알아들을 수 있어요. 안 되면 예문으로 말하거나 넘어가도 괜찮아요.</div>' +
-      '<div class="row"><button class="big" id="wMicEx">🎤 예문으로 말하기</button></div>' +
+      '<div class="small" style="margin-top:6px">짧은 단어는 폰이 잘 못 알아들을 수 있어요. 안 되면 예문으로 말하거나 넘어가도 괜찮아요.</div>' +
       '<div class="row"><button class="big" id="prevS"' + (card === 0 ? " disabled" : "") + '>◀ 이전</button>' +
       (card < set.idx.length - 1 ? '<button class="big primary" id="nextS">다음 ▶</button>' : '<button class="big primary" id="toTest">테스트 보기 ▶</button>') +
       "</div></div>");

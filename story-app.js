@@ -93,7 +93,9 @@
   function renderChat() {
     var ep = E.ep, lines = ep.lines;
     var html = '<div class="card">' + head() + '<div class="chat">';
-    for (var k = 0; k < E.line; k++) html += bubble(lines[k], k);
+    var from = E.showAll ? 0 : Math.max(0, E.line - 1);
+    if (from > 0) html += '<button class="old-chat" id="oldChat">⬆ 앞 대화 ' + from + '줄 보기</button>';
+    for (var k = from; k < E.line; k++) html += bubble(lines[k], k);
     var cur = lines[E.line];
     if (cur && cur.who === "npc") {
       html += bubble(cur, E.line) + "</div>" + '<div class="row"><button class="big primary" id="cNext">다음 ▶</button></div>';
@@ -108,15 +110,16 @@
     box(html);
     // 맨 아래로
     var chat = $("storyMain").querySelector(".chat");
-    if (chat && chat.lastElementChild) chat.lastElementChild.scrollIntoView({ block: "center" });
+    window.scrollTo(0, 0);
     Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-say]"), function (b) { b.onclick = function () { TE.speak(b.dataset.say); }; });
     Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-slow]"), function (b) { b.onclick = function () { TE.speak(b.dataset.slow, true); }; });
     Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-ko]"), function (b) {
       b.onclick = function () { $("k" + b.dataset.ko).classList.toggle("hidden"); };
     });
+    if ($("oldChat")) $("oldChat").onclick = function () { E.showAll = true; renderChat(); };
     if (cur && cur.who === "npc") {
       TE.speak(cur.en);
-      $("cNext").onclick = function () { E.line++; renderChat(); };
+      $("cNext").onclick = function () { E.line++; E.showAll = false; renderChat(); };
     } else if (cur && cur.who === "me") {
       Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-o]"), function (b) {
         b.onclick = function () {
@@ -130,13 +133,12 @@
           }
           cur.answered = true;
           b.classList.add("right");
-          $("cFb").innerHTML = '<div class="result ok">⭕ 좋아요! 초록 문장을 누를 때마다 소리가 나요. 여러 번 듣고 따라 말해 보세요.</div>' +
-            '<div class="row"><button class="big" id="cPlay">🔊 듣기</button><button class="big" id="cSlow">🐢 천천히</button></div>' +
-            '<div class="row"><button class="big mic" id="cMic">🎤 따라 말하기</button><button class="big primary" id="cNext2">다음 ▶</button></div><div id="cMicR"></div>';
+          $("cFb").innerHTML = '<div class="result ok">⭕ 좋아요! 초록 문장을 누를 때마다 소리가 나요.</div>' +
+            '<div class="row"><button class="big" id="cPlay">🔊</button><button class="big" id="cSlow">🐢</button><button class="big mic" id="cMic">🎤 말하기</button><button class="big primary" id="cNext2">다음 ▶</button></div><div id="cMicR"></div>';
           $("cPlay").onclick = function () { TE.speak(cur.en); };
           $("cSlow").onclick = function () { TE.speak(cur.en, true); };
           $("cMic").onclick = function () { TE.listen($("cMic"), cur.en, $("cMicR")); };
-          $("cNext2").onclick = function () { cur.answered = false; E.line++; renderChat(); };
+          $("cNext2").onclick = function () { cur.answered = false; E.line++; E.showAll = false; renderChat(); };
         };
       });
     } else {

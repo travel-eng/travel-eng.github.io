@@ -174,7 +174,7 @@
     var gotResult = false;
     btn.classList.add("listening");
     var oldText = btn.textContent;
-    btn.textContent = "👂 듣는 중… (다시 누르면 취소)";
+    btn.textContent = "👂 듣는 중…";
     showResult(resultEl, "info", "영어 문장을 말해 보세요.");
     rec.onresult = function (e) {
       gotResult = true;
