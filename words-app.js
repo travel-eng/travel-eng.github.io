@@ -150,9 +150,12 @@
       var rec = state.cal[key] || {};
       var st = dayStatus(key);
       var mark = rec.stamp ? '<span class="mini-stamp">참잘</span>' : (st.any ? '<span class="cal-dot"></span>' : "");
-      html += '<div class="d' + (key === t ? " today" : "") + '">' + d + mark + "</div>";
+      html += '<div class="d' + (key === t ? " today" : "") + '" data-day="' + key + '">' + d + mark + "</div>";
     }
     $("calGrid").innerHTML = html;
+    Array.prototype.forEach.call($("calGrid").querySelectorAll("[data-day]"), function (c) {
+      c.onclick = function () { showDay(c.dataset.day); };
+    });
   }
   $("calPrev").onclick = function () { calM--; if (calM < 0) { calM = 11; calY--; } renderCalendar(); };
   $("calNext").onclick = function () { calM++; if (calM > 11) { calM = 0; calY++; } renderCalendar(); };
@@ -312,7 +315,7 @@
         q.answered = true;
         var ok = +b.dataset.o === q.i;
         if (ok) quiz.right++; else quiz.wrongs.push(q.i);
-        if (quiz.review) markReview(q.i, ok);
+        if (quiz.review) { markReview(q.i, ok); addLog("rev", [q.i]); }
         TE.save();
         Array.prototype.forEach.call($("wordsMain").querySelectorAll("[data-o]"), function (x) {
           if (+x.dataset.o === q.i) x.classList.add("right");
@@ -348,6 +351,7 @@
       state.wPos = Math.max(state.wPos, set.idx[set.idx.length - 1] + 1);
       state.wStage = set.stage + 1;
       dayRec().w = true;
+      addLog("words", set.idx);
       TE.save();
       var unlocked = state.wPos >= BASIC_COUNT && set.stage === BASIC_STAGES;
       box('<div class="card"><div class="en">🎉 통과! ' + r + " / " + n + " (" + pct + "%)</div>" +
@@ -385,6 +389,76 @@
   TE.renderCalendar = function () { renderTodo(); renderCalendar(); };
   TE.renderWordSettings = renderWordSettings;
   TE.checkDay = checkDay;
+  // ---------- 날짜별 기록 ----------
+  function addLog(kind, list, key) {
+    var r = dayRec(key);
+    r[kind] = r[kind] || [];
+    list.forEach(function (x) { if (r[kind].indexOf(x) < 0) r[kind].push(x); });
+    TE.save();
+  }
+  // 문장을 맞게 말했거나 외운 날 기록
+  TE.logSentence = function (id) {
+    if (!id) return;
+    addLog("sent", [id]);
+    state.sentOk = state.sentOk || {};
+    if (!state.sentOk[id]) state.sentOk[id] = today();
+    TE.save();
+  };
+  // 예전 기록 옮기기 (이 기능이 생기기 전에 공부한 것)
+  (function migrate() {
+    if (state.wToday && state.wToday.passed) {
+      var r = state.cal[state.wToday.date];
+      if (r && r.w && !r.words) r.words = state.wToday.idx.slice();
+    }
+    state.sentOk = state.sentOk || {};
+    Object.keys(state.daily).forEach(function (k) {
+      var d = state.daily[k];
+      if (d.done) {
+        if (!state.sentOk[d.id]) state.sentOk[d.id] = k;
+        var r = dayRec(k); r.sent = r.sent || [];
+        if (r.sent.indexOf(d.id) < 0) r.sent.push(d.id);
+      }
+    });
+    TE.save();
+  })();
+
+  function showDay(key) {
+    var r = state.cal[key] || {};
+    var p = key.split("-");
+    var st = dayStatus(key);
+    var daily = state.daily[key];
+    var sec = function (title, rows) {
+      if (!rows.length) return "";
+      return '<div class="label" style="margin-top:14px">' + title + "</div>" + rows.map(function (x) {
+        return '<div class="list-item"><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k">' + esc(x.ko) +
+          '</div></div><button data-say="' + esc(x.en) + '">🔊</button></div>';
+      }).join("");
+    };
+    var words = (r.words || []).map(function (i) { return WORDS[i]; });
+    var rev = (r.rev || []).filter(function (i) { return (r.words || []).indexOf(i) < 0; }).map(function (i) { return WORDS[i]; });
+    var sents = (r.sent || []).map(function (id) { return TE.byId(id); }).filter(Boolean);
+    var body = sec("📖 새로 배운 단어 (" + words.length + ")", words) +
+      sec("🔁 복습한 단어 (" + rev.length + ")", rev) +
+      sec("💬 공부한 문장 (" + sents.length + ")", sents);
+    if (!body) body = '<div class="ko" style="margin-top:12px">이 날은 공부 기록이 없어요.</div>';
+    var badge = r.stamp ? '<span class="mini-stamp" style="width:44px;height:44px;font-size:13px;transform:rotate(-12deg)">참잘</span>' : "";
+    $("dayTitle").innerHTML = (+p[1]) + "월 " + (+p[2]) + "일 " + badge;
+    $("dayBody").innerHTML =
+      '<div class="small">' + (st.s ? "✅" : "⬜") + " 오늘의 문장 &nbsp; " + (st.w ? "✅" : "⬜") + " 단어 테스트" +
+      (r.needR ? " &nbsp; " + (r.r ? "✅" : "⬜") + " 복습" : "") + "</div>" + body;
+    Array.prototype.forEach.call($("dayBody").querySelectorAll("[data-say]"), function (b) {
+      b.onclick = function () { TE.speak(b.dataset.say); };
+    });
+    $("dayModal").classList.remove("hidden");
+  }
+  $("dayClose").onclick = function () { $("dayModal").classList.add("hidden"); };
+  $("dayModal").onclick = function (e) { if (e.target === $("dayModal")) $("dayModal").classList.add("hidden"); };
+
+  TE.learnedWords = function () { return Object.keys(state.learned).map(Number); };
+  TE.learnedSentences = function () {
+    return Object.keys(state.sentOk || {}).map(function (id) { return TE.byId(id); }).filter(Boolean);
+  };
+
   TE._w = { addDays: addDays, dueList: dueList, state: state, quiz: function () { return quiz; } };
 
   renderTodo(); renderCalendar(); renderWordSettings();

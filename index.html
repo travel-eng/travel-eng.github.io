@@ -108,6 +108,23 @@ select,input[type=text]{font:inherit;width:100%;padding:12px;border-radius:12px;
 .stamp-box{background:var(--card);border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center}
 .big-stamp{width:180px;height:180px;margin:0 auto 16px;border:8px solid #d32f2f;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#d32f2f;font-weight:900;font-size:30px;line-height:1.2;transform:rotate(-14deg);animation:stamp .5s cubic-bezier(.2,1.6,.4,1) both;box-shadow:inset 0 0 0 4px #fff, inset 0 0 0 7px #d32f2f}
 @keyframes stamp{0%{transform:scale(2.4) rotate(-14deg);opacity:0}100%{transform:scale(1) rotate(-14deg);opacity:1}}
+/* 게임 */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.match>div{display:grid;gap:8px;align-content:start}
+.tile{background:var(--bg);border:2px solid var(--line);font-size:16px;padding:10px 8px;min-height:52px;word-break:break-word}
+.tile.sel{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.tile.gone{visibility:hidden}
+.build-tiles .tile.gone{visibility:visible;opacity:.25}
+.tile.shake{border-color:var(--bad);animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.hud{display:flex;justify-content:space-between;font-size:16px;font-weight:700;margin-bottom:10px}
+.combo{color:#e8590c}
+.build-line{min-height:56px;border:2px dashed var(--line);border-radius:12px;padding:12px;margin:12px 0;font-size:20px;font-weight:600}
+.build-tiles{display:flex;flex-wrap:wrap;gap:8px}
+.build-tiles .tile{min-height:46px;padding:8px 14px}
+nav button{padding:10px 2px;font-size:12px}
+.day-box{max-height:85vh;overflow-y:auto;text-align:left}
+.cal-grid .d[data-day]{cursor:pointer}
 .stamp-msg{font-size:18px;font-weight:700;margin-bottom:16px}
 nav button{font-size:13px}
 </style>
@@ -153,6 +170,11 @@ nav button{font-size:13px}
       <div class="cal-grid" id="calGrid"></div>
       <div class="small" style="margin-top:8px"><span class="mini-stamp">참잘</span> 다 한 날 &nbsp; <span class="cal-dot"></span> 조금 한 날</div>
     </div>
+  </section>
+
+  <!-- 게임 -->
+  <section id="tab-game" class="hidden">
+    <div id="gameMain"></div>
   </section>
 
   <!-- 단어 -->
@@ -240,6 +262,7 @@ nav button{font-size:13px}
 <nav>
   <button data-tab="today" class="on"><span class="ic">📅</span>오늘</button>
   <button data-tab="words"><span class="ic">📖</span>단어</button>
+  <button data-tab="game"><span class="ic">🎮</span>게임</button>
   <button data-tab="practice"><span class="ic">🎤</span>말하기</button>
   <button data-tab="list"><span class="ic">📚</span>문장</button>
   <button data-tab="settings"><span class="ic">⚙️</span>설정</button>
@@ -253,10 +276,18 @@ nav button{font-size:13px}
   </div>
 </div>
 
+<div id="dayModal" class="stamp-modal hidden" role="dialog" aria-label="그날 공부한 것">
+  <div class="stamp-box day-box">
+    <div class="cal-head"><div class="cal-title" id="dayTitle"></div><button id="dayClose" aria-label="닫기">✕</button></div>
+    <div id="dayBody" style="text-align:left"></div>
+  </div>
+</div>
+
 <script src="sentences.js"></script>
 <script src="words.js"></script>
 <script src="app.js"></script>
 <script src="words-app.js"></script>
+<script src="game.js"></script>
 
 </body>
 </html>

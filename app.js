@@ -341,7 +341,7 @@
   function showResult(el, kind, html) { el.innerHTML = '<div class="result ' + kind + '">' + html + "</div>"; }
   function alertBox(msg) { var w = $("browserWarn"); w.textContent = msg; w.classList.remove("hidden"); }
   function showTab(name) {
-    ["today", "words", "practice", "list", "settings"].forEach(function (t) {
+    ["today", "words", "game", "practice", "list", "settings"].forEach(function (t) {
       $("tab-" + t).classList.toggle("hidden", t !== name);
     });
     Array.prototype.forEach.call(document.querySelectorAll("nav button"), function (b) {
@@ -350,6 +350,7 @@
     if (name === "list") renderList();
     if (name === "today") { renderToday(); if (window.TE.renderCalendar) window.TE.renderCalendar(); }
     if (name === "words" && window.TE.renderWords) window.TE.renderWords();
+    if (name === "game" && window.TE.renderGame) window.TE.renderGame();
     if (name === "settings" && window.TE.renderWordSettings) window.TE.renderWordSettings();
     window.scrollTo(0, 0);
   }
@@ -364,14 +365,20 @@
     // 오늘
     $("todayListen").onclick = function () { speak($("todayEn").textContent); };
     $("todaySlow").onclick = function () { speak($("todayEn").textContent, true); };
-    $("todayMic").onclick = function () { listen($("todayMic"), $("todayEn").textContent, $("todayResult")); };
-    $("todayDone").onclick = function () { state.daily[dateKey()].done = true; save(); renderToday(); if (window.TE.checkDay) window.TE.checkDay(); };
+    $("todayMic").onclick = function () { listen($("todayMic"), $("todayEn").textContent, $("todayResult"), function (ok) {
+      if (ok && TE.logSentence) TE.logSentence(state.daily[dateKey()].id);
+    }); };
+    $("todayDone").onclick = function () { state.daily[dateKey()].done = true; if (TE.logSentence) TE.logSentence(state.daily[dateKey()].id); save(); renderToday(); if (window.TE.checkDay) window.TE.checkDay(); };
     // 연습
     fillCatSelect($("catSelect"), state.cat);
     $("catSelect").onchange = function () { state.cat = this.value; save(); nextPractice(); };
     $("pListen").onclick = function () { speak(current.en); };
     $("pSlow").onclick = function () { speak(current.en, true); };
-    $("pMic").onclick = function () { listen($("pMic"), current.en, $("pResult"), record); };
+    $("pMic").onclick = function () { listen($("pMic"), current.en, $("pResult"), function (ok) {
+      var id = current.id;
+      record(ok);
+      if (ok && TE.logSentence) TE.logSentence(id);
+    }); };
     $("pNext").onclick = nextPractice;
     // 목록
     fillCatSelect($("listCat"), "all");
@@ -398,7 +405,7 @@
   window.TE = {
     state: state, save: save, speak: speak, listen: listen, compare: compare, tokens: tokens,
     dateKey: dateKey, esc: esc, $: $, showResult: showResult, showTab: function (n) { showTab(n); },
-    allSentences: allSentences
+    allSentences: allSentences, byId: byId
   };
   init();
 })();
