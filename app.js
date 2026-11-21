@@ -12,7 +12,7 @@
   var state = load();
   state.level = state.level || 1;
   state.mine = state.mine || [];          // 내가 추가한 문장 [{en, ko}]
-  state.daily = state.daily || {};        // { "2026-11-21": { id, done } }
+  state.daily = state.daily || {};        // { "2026-11-21": { ids:[2개], dones:[..], id, done(둘 다 했는지) } }
   state.hist = state.hist || { 1: [], 2: [], 3: [] }; // 레벨별 최근 결과 true/false
   state.voice = state.voice || "";
   state.cat = state.cat || "all";
@@ -272,20 +272,35 @@
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
   function hash(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
-  function todaySentence() {
-    var k = dateKey();
-    var d = state.daily[k];
-    if (d && byId(d.id)) return byId(d.id);
-    // 아직 안 한 문장 중에서 고르기
-    var used = {};
-    Object.keys(state.daily).forEach(function (x) { used[state.daily[x].id] = true; });
+  var DAILY_N = 2;       // 하루 문장 개수
+  var todayCur = -1;     // 지금 보고 있는 오늘 문장 번호(0, 1)
+  function pickNew(k, used) {
     var p = pool(state.level, "all");
     var fresh = p.filter(function (s) { return !used[s.id]; });
     if (fresh.length) p = fresh;
-    var s = p[hash(k) % p.length];
-    state.daily[k] = { id: s.id, done: false };
+    return p[(hash(k) + Object.keys(used).length * 7) % p.length];
+  }
+  function todayRec() {
+    var k = dateKey();
+    var d = state.daily[k];
+    var used = {};
+    Object.keys(state.daily).forEach(function (x) {
+      var r = state.daily[x];
+      (r.ids || [r.id]).forEach(function (id) { if (id) used[id] = true; });
+    });
+    if (!d) d = state.daily[k] = { ids: [], dones: [] };
+    if (!d.ids) { d.ids = d.id ? [d.id] : []; d.dones = d.id ? [!!d.done] : []; }
+    d.ids = d.ids.filter(function (id) { return byId(id); });
+    while (d.ids.length < DAILY_N) { var s = pickNew(k, used); used[s.id] = true; d.ids.push(s.id); d.dones.push(false); }
+    d.id = d.ids[0];
+    d.done = d.dones.every(Boolean);
     save();
-    return s;
+    return d;
+  }
+  function todaySentence() {
+    var d = todayRec();
+    if (todayCur < 0) { todayCur = d.dones.indexOf(false); if (todayCur < 0) todayCur = 0; }
+    return byId(d.ids[todayCur]);
   }
   function streak() {
     var n = 0, d = new Date();
@@ -296,15 +311,23 @@
   function renderToday() {
     var s = todaySentence();
     var d = new Date();
-    $("todayDate").textContent = (d.getMonth() + 1) + "월 " + d.getDate() + "일 · 오늘의 문장";
+    var rec = state.daily[dateKey()];
+    $("todayDate").textContent = (d.getMonth() + 1) + "월 " + d.getDate() + "일 · 오늘의 문장 " + (todayCur + 1) + "/" + DAILY_N;
+    $("todaySeg").innerHTML = rec.ids.map(function (id, i) {
+      return '<button data-i="' + i + '" class="' + (i === todayCur ? "on" : "") + '">' + (rec.dones[i] ? "✅ " : "") + "문장 " + (i + 1) + "</button>";
+    }).join("");
+    Array.prototype.forEach.call($("todaySeg").querySelectorAll("button"), function (b) {
+      b.onclick = function () { todayCur = +b.dataset.i; $("todayResult").innerHTML = ""; renderToday(); };
+    });
     $("todayEn").textContent = s.en;
     if (window.TE && TE.decorate) TE.decorate($("todayEn"), $("todayExp"));
     $("todayKo").textContent = s.ko;
-    var done = state.daily[dateKey()].done;
+    var done = rec.dones[todayCur];
     var btn = $("todayDone");
     btn.disabled = done;
-    btn.textContent = done ? "✔ 오늘 완료!" : "✔ 오늘 문장 외웠어요";
-    var total = Object.keys(state.daily).filter(function (k) { return state.daily[k].done; }).length;
+    btn.textContent = rec.done ? "✔ 오늘 2문장 완료!" : done ? "✔ 이 문장 외웠어요" : "✔ 문장 " + (todayCur + 1) + " 외웠어요";
+    var total = 0;
+    Object.keys(state.daily).forEach(function (k) { var r = state.daily[k]; total += r.dones ? r.dones.filter(Boolean).length : (r.done ? 1 : 0); });
     var st = streak();
     $("streak").textContent = (st ? "🔥 " + st + "일 연속 · " : "") + "지금까지 " + total + "문장 완료";
   }
@@ -405,9 +428,17 @@
     $("todayListen").onclick = function () { speak($("todayEn").textContent); };
     $("todaySlow").onclick = function () { speak($("todayEn").textContent, true); };
     $("todayMic").onclick = function () { listen($("todayMic"), $("todayEn").textContent, $("todayResult"), function (ok) {
-      if (ok && TE.logSentence) TE.logSentence(state.daily[dateKey()].id);
+      if (ok && TE.logSentence) TE.logSentence(state.daily[dateKey()].ids[todayCur]);
     }); };
-    $("todayDone").onclick = function () { state.daily[dateKey()].done = true; if (TE.logSentence) TE.logSentence(state.daily[dateKey()].id); save(); renderToday(); if (window.TE.checkDay) window.TE.checkDay(); };
+    $("todayDone").onclick = function () {
+      var rec = todayRec();
+      rec.dones[todayCur] = true;
+      if (TE.logSentence) TE.logSentence(rec.ids[todayCur]);
+      rec.done = rec.dones.every(Boolean);
+      var next = rec.dones.indexOf(false);
+      if (next >= 0) { todayCur = next; $("todayResult").innerHTML = ""; }
+      save(); renderToday(); if (window.TE.checkDay) window.TE.checkDay();
+    };
     // 연습
     fillCatSelect($("catSelect"), state.cat);
     $("catSelect").onchange = function () { state.cat = this.value; save(); nextPractice(); };

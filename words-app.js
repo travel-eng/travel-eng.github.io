@@ -118,7 +118,7 @@
     var due = dueList().length;
     var set = todaySet();
     var items = [
-      { ok: st.s, t: "오늘의 문장 외우기", btn: null },
+      { ok: st.s, t: "오늘의 문장 2개" + (function () { var d = state.daily[today()]; return d && d.dones ? " (" + d.dones.filter(Boolean).length + "/" + d.dones.length + ")" : ""; })(), btn: null },
       { ok: st.w, t: set ? "오늘의 단어 (" + stageName(set.stage) + ")" : "단어 공부 (모두 배웠어요!)", btn: st.w ? null : "words" }
     ];
     if (st.needS || st.stDone) items.push({ ok: st.stDone, t: "오늘의 이야기 (호주 여행)", btn: st.stDone ? null : "story" });
@@ -422,11 +422,13 @@
     state.sentOk = state.sentOk || {};
     Object.keys(state.daily).forEach(function (k) {
       var d = state.daily[k];
-      if (d.done) {
-        if (!state.sentOk[d.id]) state.sentOk[d.id] = k;
+      var ids = d.ids || [d.id], dones = d.dones || [d.done];
+      ids.forEach(function (id, n) {
+        if (!dones[n] || !id) return;
+        if (!state.sentOk[id]) state.sentOk[id] = k;
         var r = dayRec(k); r.sent = r.sent || [];
-        if (r.sent.indexOf(d.id) < 0) r.sent.push(d.id);
-      }
+        if (r.sent.indexOf(id) < 0) r.sent.push(id);
+      });
     });
     TE.save();
   })();
