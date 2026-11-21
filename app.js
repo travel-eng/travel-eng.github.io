@@ -341,14 +341,16 @@
   function showResult(el, kind, html) { el.innerHTML = '<div class="result ' + kind + '">' + html + "</div>"; }
   function alertBox(msg) { var w = $("browserWarn"); w.textContent = msg; w.classList.remove("hidden"); }
   function showTab(name) {
-    ["today", "practice", "list", "settings"].forEach(function (t) {
+    ["today", "words", "practice", "list", "settings"].forEach(function (t) {
       $("tab-" + t).classList.toggle("hidden", t !== name);
     });
     Array.prototype.forEach.call(document.querySelectorAll("nav button"), function (b) {
       b.classList.toggle("on", b.dataset.tab === name);
     });
     if (name === "list") renderList();
-    if (name === "today") renderToday();
+    if (name === "today") { renderToday(); if (window.TE.renderCalendar) window.TE.renderCalendar(); }
+    if (name === "words" && window.TE.renderWords) window.TE.renderWords();
+    if (name === "settings" && window.TE.renderWordSettings) window.TE.renderWordSettings();
     window.scrollTo(0, 0);
   }
 
@@ -363,7 +365,7 @@
     $("todayListen").onclick = function () { speak($("todayEn").textContent); };
     $("todaySlow").onclick = function () { speak($("todayEn").textContent, true); };
     $("todayMic").onclick = function () { listen($("todayMic"), $("todayEn").textContent, $("todayResult")); };
-    $("todayDone").onclick = function () { state.daily[dateKey()].done = true; save(); renderToday(); };
+    $("todayDone").onclick = function () { state.daily[dateKey()].done = true; save(); renderToday(); if (window.TE.checkDay) window.TE.checkDay(); };
     // 연습
     fillCatSelect($("catSelect"), state.cat);
     $("catSelect").onchange = function () { state.cat = this.value; save(); nextPractice(); };
@@ -391,6 +393,12 @@
   }
 
   // 테스트용으로 비교 함수 공개
+  // 단어 기능(words-app.js)과 함께 쓰는 도구
   window.__te = { compare: compare, tokens: tokens, levelOf: levelOf };
+  window.TE = {
+    state: state, save: save, speak: speak, listen: listen, compare: compare, tokens: tokens,
+    dateKey: dateKey, esc: esc, $: $, showResult: showResult, showTab: function (n) { showTab(n); },
+    allSentences: allSentences
+  };
   init();
 })();

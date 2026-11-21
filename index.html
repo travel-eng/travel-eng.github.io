@@ -67,6 +67,49 @@ select,input[type=text]{font:inherit;width:100%;padding:12px;border-radius:12px;
 .dots{display:flex;gap:6px;margin-top:8px}
 .dot{width:14px;height:14px;border-radius:50%;background:var(--line)}
 .dot.y{background:var(--ok)} .dot.n{background:var(--bad)}
+
+/* 단어 */
+.steps{display:flex;gap:6px;margin:8px 0 4px}
+.steps span{flex:1;text-align:center;font-size:14px;padding:6px 2px;border-radius:10px;background:var(--line);color:var(--muted)}
+.steps span.on{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.steps span.done{background:var(--ok-bg);color:var(--ok);font-weight:700}
+.word-big{font-size:34px;font-weight:800;margin:6px 0 2px;word-break:break-word}
+.ex{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.ex .e{font-weight:600}
+.ex .k{color:var(--muted);font-size:15px}
+.linked{margin-top:10px;font-size:15px}
+.linked div{margin:4px 0}
+.choices{display:grid;gap:10px;margin-top:14px}
+.choices button{text-align:left;font-size:18px}
+.choices button.right{background:var(--ok-bg);color:var(--ok);font-weight:700}
+.choices button.wrong{background:var(--bad-bg);color:var(--bad)}
+.progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0}
+.progress i{display:block;height:100%;background:var(--accent)}
+.todo{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.todo:last-child{border-bottom:0}
+.todo .chk{font-size:22px;width:28px;text-align:center}
+.todo .t{flex:1}
+.todo button{min-height:40px;padding:8px 12px;font-size:15px}
+/* 달력 */
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cal-head button{min-height:40px;padding:6px 14px}
+.cal-title{font-weight:700;font-size:18px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px;text-align:center}
+.cal-grid .dow{font-size:13px;color:var(--muted);padding:4px 0}
+.cal-grid .d{position:relative;aspect-ratio:1/1;border-radius:10px;font-size:14px;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;background:var(--bg)}
+.cal-grid .d.today{outline:2px solid var(--accent)}
+.cal-grid .d.empty{background:none}
+.cal-grid .d .mini-stamp{position:absolute;left:50%;top:56%;transform:translate(-50%,-50%) rotate(-12deg)}
+.cal-grid .d .cal-dot{position:absolute;left:50%;bottom:6px;transform:translateX(-50%)}
+.mini-stamp{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border:2px solid #d32f2f;border-radius:50%;color:#d32f2f;font-size:10px;font-weight:800;line-height:1;background:rgba(255,255,255,.6);vertical-align:middle}
+.cal-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);vertical-align:middle}
+/* 도장 */
+.stamp-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.stamp-box{background:var(--card);border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center}
+.big-stamp{width:180px;height:180px;margin:0 auto 16px;border:8px solid #d32f2f;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#d32f2f;font-weight:900;font-size:30px;line-height:1.2;transform:rotate(-14deg);animation:stamp .5s cubic-bezier(.2,1.6,.4,1) both;box-shadow:inset 0 0 0 4px #fff, inset 0 0 0 7px #d32f2f}
+@keyframes stamp{0%{transform:scale(2.4) rotate(-14deg);opacity:0}100%{transform:scale(1) rotate(-14deg);opacity:1}}
+.stamp-msg{font-size:18px;font-weight:700;margin-bottom:16px}
+nav button{font-size:13px}
 </style>
 </head>
 <body>
@@ -97,6 +140,24 @@ select,input[type=text]{font:inherit;width:100%;padding:12px;border-radius:12px;
       </div>
       <div class="streak" id="streak"></div>
     </div>
+    <div class="card">
+      <div class="label">오늘 할 일</div>
+      <div id="todoList"></div>
+    </div>
+    <div class="card">
+      <div class="cal-head">
+        <button id="calPrev" aria-label="이전 달">◀</button>
+        <div id="calTitle" class="cal-title"></div>
+        <button id="calNext" aria-label="다음 달">▶</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="small" style="margin-top:8px"><span class="mini-stamp">참잘</span> 다 한 날 &nbsp; <span class="cal-dot"></span> 조금 한 날</div>
+    </div>
+  </section>
+
+  <!-- 단어 -->
+  <section id="tab-words" class="hidden">
+    <div id="wordsMain"></div>
   </section>
 
   <!-- 따라 말하기 연습 -->
@@ -143,6 +204,13 @@ select,input[type=text]{font:inherit;width:100%;padding:12px;border-radius:12px;
   <!-- 설정 -->
   <section id="tab-settings" class="hidden">
     <div class="card">
+      <div class="label">하루 단어 개수</div>
+      <div class="seg" id="wordCountSeg">
+        <button data-n="3">3개</button><button data-n="5">5개</button><button data-n="7">7개</button><button data-n="10">10개</button>
+      </div>
+      <div class="small" id="wordCountInfo"></div>
+    </div>
+    <div class="card">
       <div class="label">레벨 (문장 길이)</div>
       <div class="seg" id="levelSeg">
         <button data-l="1">1<br><span class="small">2~4단어</span></button>
@@ -171,12 +239,24 @@ select,input[type=text]{font:inherit;width:100%;padding:12px;border-radius:12px;
 
 <nav>
   <button data-tab="today" class="on"><span class="ic">📅</span>오늘</button>
-  <button data-tab="practice"><span class="ic">🎤</span>따라 말하기</button>
+  <button data-tab="words"><span class="ic">📖</span>단어</button>
+  <button data-tab="practice"><span class="ic">🎤</span>말하기</button>
   <button data-tab="list"><span class="ic">📚</span>문장</button>
   <button data-tab="settings"><span class="ic">⚙️</span>설정</button>
 </nav>
 
+<div id="stampModal" class="stamp-modal hidden" role="dialog" aria-label="참 잘했어요">
+  <div class="stamp-box">
+    <div class="big-stamp" id="bigStamp"><span>참<br>잘했어요</span></div>
+    <div class="stamp-msg" id="stampMsg">오늘 할 일을 다 했어요! 🎉</div>
+    <button class="primary" id="stampClose" style="width:100%">고마워요!</button>
+  </div>
+</div>
+
 <script src="sentences.js"></script>
+<script src="words.js"></script>
 <script src="app.js"></script>
+<script src="words-app.js"></script>
+
 </body>
 </html>
