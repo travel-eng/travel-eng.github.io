@@ -85,10 +85,10 @@
   // ② 대화: 한 줄씩 진행
   function bubble(l, k) {
     if (l.who === "npc") {
-      return '<div class="bub npc"><div class="who">' + esc(l.name) + '</div><div class="en">' + esc(l.en) +
-        '</div><div class="k hidden" id="k' + k + '">' + esc(l.ko) + '</div><div class="bub-btns"><button data-say="' + esc(l.en) + '">🔊</button><button data-ko="' + k + '">뜻</button></div></div>';
+      return '<div class="bub npc"><div class="who">' + esc(l.name) + '</div><div class="en" data-say="' + esc(l.en) + '">' + esc(l.en) +
+        '</div><div class="k hidden" id="k' + k + '">' + esc(l.ko) + '</div><div class="bub-btns"><button data-say="' + esc(l.en) + '">🔊</button><button data-slow="' + esc(l.en) + '">🐢</button><button data-ko="' + k + '">뜻</button></div></div>';
     }
-    return '<div class="bub me"><div class="who">나</div><div class="en">' + esc(l.en) + '</div><div class="k">' + esc(l.ko) + "</div></div>";
+    return '<div class="bub me"><div class="who">나</div><div class="en" data-say="' + esc(l.en) + '">' + esc(l.en) + '</div><div class="k">' + esc(l.ko) + "</div></div>";
   }
   function renderChat() {
     var ep = E.ep, lines = ep.lines;
@@ -110,6 +110,7 @@
     var chat = $("storyMain").querySelector(".chat");
     if (chat && chat.lastElementChild) chat.lastElementChild.scrollIntoView({ block: "center" });
     Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-say]"), function (b) { b.onclick = function () { TE.speak(b.dataset.say); }; });
+    Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-slow]"), function (b) { b.onclick = function () { TE.speak(b.dataset.slow, true); }; });
     Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-ko]"), function (b) {
       b.onclick = function () { $("k" + b.dataset.ko).classList.toggle("hidden"); };
     });
@@ -119,17 +120,21 @@
     } else if (cur && cur.who === "me") {
       Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-o]"), function (b) {
         b.onclick = function () {
+          var said = cur.opts[+b.dataset.o];
+          TE.speak(said);  // 누를 때마다 소리
           if (cur.answered) return;
-          if (cur.opts[+b.dataset.o] !== cur.en) {
+          if (said !== cur.en) {
             b.classList.add("wrong");
             $("cFb").innerHTML = '<div class="result bad">앗, 그 말은 뜻이 달라요. 다시 골라 보세요!</div>';
             return;
           }
           cur.answered = true;
           b.classList.add("right");
-          TE.speak(cur.en);
-          $("cFb").innerHTML = '<div class="result ok">⭕ 좋아요! 이제 소리 내어 말해 보세요.</div>' +
+          $("cFb").innerHTML = '<div class="result ok">⭕ 좋아요! 초록 문장을 누를 때마다 소리가 나요. 여러 번 듣고 따라 말해 보세요.</div>' +
+            '<div class="row"><button class="big" id="cPlay">🔊 듣기</button><button class="big" id="cSlow">🐢 천천히</button></div>' +
             '<div class="row"><button class="big mic" id="cMic">🎤 따라 말하기</button><button class="big primary" id="cNext2">다음 ▶</button></div><div id="cMicR"></div>';
+          $("cPlay").onclick = function () { TE.speak(cur.en); };
+          $("cSlow").onclick = function () { TE.speak(cur.en, true); };
           $("cMic").onclick = function () { TE.listen($("cMic"), cur.en, $("cMicR")); };
           $("cNext2").onclick = function () { cur.answered = false; E.line++; renderChat(); };
         };

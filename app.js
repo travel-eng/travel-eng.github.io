@@ -17,7 +17,8 @@
   state.voice = state.voice || "";
   state.cat = state.cat || "all";
 
-  var PASS = 0.8;        // 단어 80% 이상 맞으면 성공
+  var PASS = 0.7;        // 70% 이상이면 성공 (비슷한 발음도 인정)
+  var ALMOST = 0.5;      // 50% 이상이면 "거의 맞았어요"
   var UP_WINDOW = 5;     // 최근 5번 중
   var UP_NEED = 4;       // 4번 이상 성공하면 다음 레벨 추천
   var DOWN_FAILS = 3;    // 3번 연속 실패하면 한 단계 내려감
@@ -79,22 +80,48 @@
     return out;
   }
   // 문장 단어 중 몇 개를 순서대로 말했는지 (LCS)
+  // 비슷한 단어 판단 (폰이 seat를 sit로 알아듣는 것 같은 경우를 인정)
+  function lev(x, y) {
+    var d = [], i, j;
+    for (i = 0; i <= x.length; i++) { d[i] = [i]; }
+    for (j = 1; j <= y.length; j++) d[0][j] = j;
+    for (i = 1; i <= x.length; i++) for (j = 1; j <= y.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (x[i - 1] === y[j - 1] ? 0 : 1));
+    return d[x.length][y.length];
+  }
+  function skel(w) {
+    w = w.replace(/ph/g, "f").replace(/th/g, "t").replace(/ck/g, "k").replace(/c/g, "k").replace(/z/g, "s").replace(/v/g, "b").replace(/'/g, "");
+    return w[0] + w.slice(1).replace(/[aeiouyhw]/g, "").replace(/(.)\1+/g, "$1");
+  }
+  function wordSim(x, y) {
+    if (x === y) return 1;
+    if (x.length >= 3 && y.length >= 3 && skel(x) === skel(y)) return 0.85;
+    var L = Math.max(x.length, y.length);
+    if (L >= 4 && 1 - lev(x, y) / L >= 0.6) return 0.75;
+    return 0;
+  }
+  var SMALL = { a: 1, an: 1, the: 1, to: 1, is: 1, of: 1, am: 1, are: 1, it: 1, do: 1, for: 1, at: 1, in: 1, on: 1 };
+  // 문장 단어 중 몇 개를 순서대로 말했는지 (비슷한 단어도 인정, 작은 단어는 덜 중요)
   function compare(target, heard) {
     var a = tokens(target), b = tokens(heard);
-    var n = a.length, m = b.length, dp = [];
-    for (var i = 0; i <= n; i++) { dp.push(new Array(m + 1).fill(0)); }
-    for (i = 1; i <= n; i++) for (var j = 1; j <= m; j++)
-      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
-    // 맞은 단어 표시
+    var n = a.length, m = b.length, dp = [], i, j;
+    var wt = a.map(function (w) { return SMALL[w] ? 0.5 : 1; });
+    for (i = 0; i <= n; i++) dp.push(new Array(m + 1).fill(0));
+    for (i = 1; i <= n; i++) for (j = 1; j <= m; j++) {
+      var sm = wordSim(a[i - 1], b[j - 1]);
+      dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1], sm ? dp[i - 1][j - 1] + sm * wt[i - 1] : 0);
+    }
     var hit = new Array(n).fill(false); i = n; j = m;
     while (i > 0 && j > 0) {
-      if (a[i - 1] === b[j - 1]) { hit[i - 1] = true; i--; j--; }
+      var s2 = wordSim(a[i - 1], b[j - 1]);
+      if (s2 && dp[i][j] === dp[i - 1][j - 1] + s2 * wt[i - 1]) { hit[i - 1] = true; i--; j--; }
       else if (dp[i - 1][j] >= dp[i][j - 1]) i--; else j--;
     }
-    var extra = Math.max(0, m - dp[n][m]);
-    // 쓸데없는 단어를 많이 더 말하면 약간 감점
-    var score = n ? (dp[n][m] - Math.max(0, extra - 2) * 0.5) / n : 0;
-    return { score: Math.max(0, score), words: a, hit: hit };
+    var total = wt.reduce(function (x, y) { return x + y; }, 0);
+    var matched = hit.filter(Boolean).length;
+    var extra = Math.max(0, m - matched);
+    var score = total ? (dp[n][m] - Math.max(0, extra - 3) * 0.3) / total : 0;
+    return { score: Math.max(0, Math.min(1, score)), words: a, hit: hit };
   }
 
   // ---------- 듣기 (TTS) ----------
@@ -120,12 +147,14 @@
   }
   function speak(text, slow) {
     if (!synth) { alertBox("이 브라우저는 읽어주기를 지원하지 않아요. 크롬에서 열어 주세요."); return; }
+    var wasBusy = synth.speaking || synth.pending;
     synth.cancel();
     var u = new SpeechSynthesisUtterance(text);
     u.lang = "en-US";
     var v = pickVoice(); if (v) { u.voice = v; u.lang = v.lang; }
     u.rate = slow ? 0.6 : 0.9;
-    synth.speak(u);
+    // 안드로이드 크롬은 멈춘 직후 바로 말하면 소리가 안 날 때가 있어서 아주 잠깐 기다림
+    if (wasBusy) setTimeout(function () { synth.speak(u); }, 120); else synth.speak(u);
   }
 
   // ---------- 말하기 인식 ----------
@@ -160,10 +189,12 @@
         return best.hit[i] ? esc(w) : '<span class="word-miss">' + esc(w) + "</span>";
       }).join(" ");
       var pct = Math.round(best.score * 100);
-      var html = (ok ? "🎉 잘했어요! (" + pct + "%)" : "😅 조금 달라요 (" + pct + "%). 밑줄 친 단어를 다시 들어 보세요.") +
-        '<div class="heard">들린 말: “' + esc(bestHeard) + '”</div>' +
-        (ok ? "" : '<div class="heard">문장: ' + marked + "</div>");
-      showResult(resultEl, ok ? "ok" : "bad", html);
+      var almost = !ok && best.score >= ALMOST;
+      var html = (ok ? "🎉 잘했어요! (" + pct + "%)" : almost ? "🙂 거의 다 왔어요! (" + pct + "%) 밑줄 친 단어만 한 번 더 들어 봐요." : "😅 조금 달라요 (" + pct + "%). 🔊로 듣고 천천히 다시 해 봐요.") +
+        '<div class="heard">📱 폰이 들은 말: “' + esc(bestHeard) + '”</div>' +
+        (ok ? "" : '<div class="heard">문장: ' + marked + "</div>") +
+        (ok ? "" : '<div class="heard small">💡 폰이 짧은 말은 잘 못 알아들을 때가 많아요. 🎤을 누르고 1초 쉬었다가 또박또박 말해 보세요.</div>');
+      showResult(resultEl, ok ? "ok" : almost ? "info" : "bad", html);
       if (onDone) onDone(ok);
     };
     rec.onerror = function (e) {
