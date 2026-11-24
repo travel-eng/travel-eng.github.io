@@ -327,6 +327,8 @@ details.exp summary{color:#8a6100}
 #srBody mark{background:var(--warn-bg);color:inherit;border-radius:4px}
 a.ext{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:4px 10px;border-radius:12px;background:var(--soft);color:var(--text);text-decoration:none;font-family:"Jua",sans-serif;font-size:14px;box-shadow:0 2px 0 var(--shadow)}
 #phModal{z-index:12}
+#stModal{z-index:11}
+#dayBody .list-item[data-st]{cursor:pointer}
 .idm-row{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}
 .idm-row .lbl{color:var(--muted);font-weight:700}
 .idm-chip{min-height:30px;padding:3px 10px;font-size:14px;background:var(--mint);border-radius:999px}
@@ -521,6 +523,23 @@ a.ext{display:inline-flex;align-items:center;justify-content:center;min-height:3
     <div class="cal-head"><div class="label" style="margin:0">🔤 파닉스 (글자와 소리)</div><button id="phClose" aria-label="닫기">✕</button></div>
     <div id="phBody"></div>
     <button class="big modal-close-btm" data-close="phModal">닫기 ✕</button>
+  </div>
+</div>
+
+<div id="stModal" class="stamp-modal hidden" role="dialog" aria-label="문장 공부">
+  <div class="stamp-box day-box" style="text-align:left">
+    <div class="cal-head"><div class="cal-title" id="stTitle">💬 문장 다시 보기</div><button data-close="stModal" aria-label="닫기">✕</button></div>
+    <div class="en" id="stEn"></div>
+    <div class="ko" id="stKo"></div>
+    <div id="stExp"></div>
+    <div class="row">
+      <button class="big" id="stListen">🔊 듣기</button>
+      <button class="big" id="stSlow">🐢 천천히</button>
+      <button class="big mic" id="stMic">🎤 말하기</button>
+    </div>
+    <div id="stResult"></div>
+    <div class="small" style="margin-top:6px">다시 보기는 연습이라 오늘 기록·연속 일수에는 영향이 없어요.</div>
+    <button class="big modal-close-btm" data-close="stModal">닫기 ✕</button>
   </div>
 </div>
 

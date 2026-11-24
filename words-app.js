@@ -441,7 +441,7 @@
     var sec = function (title, rows) {
       if (!rows.length) return "";
       return '<div class="label" style="margin-top:14px">' + title + "</div>" + rows.map(function (x) {
-        return '<div class="list-item"><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k">' + esc(x.ko) +
+        return '<div class="list-item" data-st="' + esc(x.en) + '" data-ko="' + esc(x.ko) + '"><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k">' + esc(x.ko) +
           '</div></div><button data-say="' + esc(x.en) + '">🔊</button></div>';
       }).join("");
     };
@@ -450,10 +450,10 @@
     var sents = (r.sent || []).map(function (id) { return TE.byId(id); }).filter(Boolean);
     var eps = (r.story || []).map(function (n) { var ep = window.STORY.episodes[n]; return ep ? { en: ep.icon + " " + (n + 1) + "화 " + ep.title, ko: ep.key, say: ep.key } : null; }).filter(Boolean);
     var body = (eps.length ? '<div class="label" style="margin-top:14px">🇦🇺 호주 여행 이야기</div>' + eps.map(function (x) {
-      return '<div class="list-item"><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k">핵심 문장: ' + esc(x.ko) + '</div></div><button data-say="' + esc(x.say) + '">🔊</button></div>';
+      return '<div class="list-item" data-st="' + esc(x.say) + '" data-ko=""><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k">핵심 문장: ' + esc(x.ko) + '</div></div><button data-say="' + esc(x.say) + '">🔊</button></div>';
     }).join("") : "") + sec("📖 새로 배운 단어 (" + words.length + ")", words) +
       sec("🔁 복습한 단어 (" + rev.length + ")", rev) +
-      sec("💬 공부한 문장 (" + sents.length + ")", sents);
+      sec("💬 공부한 문장 (" + sents.length + ") · 누르면 공부 화면", sents);
     if (!body) body = '<div class="ko" style="margin-top:12px">이 날은 공부 기록이 없어요.</div>';
     var badge = r.stamp ? '<span class="mini-stamp" style="width:44px;height:44px;font-size:13px;transform:rotate(-12deg)">참잘</span>' : "";
     $("dayTitle").innerHTML = (+p[1]) + "월 " + (+p[2]) + "일 " + badge;
@@ -461,7 +461,17 @@
       '<div class="small">' + (st.s ? "✅" : "⬜") + " 오늘의 문장 &nbsp; " + (st.w ? "✅" : "⬜") + " 단어 테스트" +
       (r.needR ? " &nbsp; " + (r.r ? "✅" : "⬜") + " 복습" : "") + (r.needS || st.stDone ? " &nbsp; " + (st.stDone ? "✅" : "⬜") + " 이야기" : "") + "</div>" + body;
     Array.prototype.forEach.call($("dayBody").querySelectorAll("[data-say]"), function (b) {
-      b.onclick = function () { TE.speak(b.dataset.say); };
+      b.onclick = function (e) { e.stopPropagation(); TE.speak(b.dataset.say); };
+    });
+    // 문장·단어 줄을 누르면: 문장은 오늘 화면과 같은 공부 창, 단어는 발음·어원 창
+    Array.prototype.forEach.call($("dayBody").querySelectorAll("[data-st]"), function (row) {
+      row.onclick = function () {
+        var en = row.dataset.st;
+        if (en.split(/\s+/).length <= 2 && !/[.?!]$/.test(en) && TE.showPhonics) { TE.showPhonics(en); return; }
+        var ko = row.dataset.ko;
+        if (!ko) { var hit = TE.allSentences().filter(function (x) { return x.en === en; })[0]; if (hit) ko = hit.ko; }
+        if (TE.showStudy) TE.showStudy(en, ko, (+p[1]) + "월 " + (+p[2]) + "일 문장 다시 보기");
+      };
     });
     $("dayModal").classList.remove("hidden");
   }

@@ -128,6 +128,21 @@
     var b = e.target.closest && e.target.closest("[data-idm]");
     if (b) { e.stopPropagation(); showIdiom(+b.dataset.idm); }
   });
+  // 문장 공부 창 (달력 등에서 다시 보기). 연습만 하고 기록은 바꾸지 않음
+  function showStudy(en, ko, title) {
+    if (TE.cancelListen) TE.cancelListen();
+    $("stTitle").textContent = title || "💬 문장 다시 보기";
+    $("stEn").textContent = en;
+    $("stKo").textContent = ko || "";
+    $("stResult").innerHTML = "";
+    decorate($("stEn"), $("stExp"));
+    $("stListen").onclick = function () { TE.speak(en); };
+    $("stSlow").onclick = function () { TE.speak(en, true); };
+    $("stMic").onclick = function () { TE.listen($("stMic"), en, $("stResult")); };
+    $("stModal").classList.remove("hidden");
+    TE.speak(en);
+  }
+  TE.showStudy = showStudy;
   TE.showIdiom = showIdiom; TE.idiomsIn = idiomsIn; TE.idmChips = idmChips;
 
   function explainHtml(en) {
@@ -170,27 +185,32 @@
 // ---------- 팝업 공통: 아래 닫기 버튼, 바깥 누르기, 폰 뒤로가기 ----------
 (function () {
   var $ = window.TE.$;
-  var IDS = ["phModal", "dayModal", "stampModal", "srModal"];
+  var IDS = ["phModal", "stModal", "dayModal", "stampModal", "srModal"];
   function isOpen(id) { var m = $(id); return m && !m.classList.contains("hidden"); }
   function closeAll() { IDS.forEach(function (id) { var m = $(id); if (m && !m.classList.contains("hidden")) { var c = id === "stampModal" ? $("stampClose") : null; if (c) c.click(); else m.classList.add("hidden"); } }); }
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) {
     b.onclick = function () { $(b.dataset.close).classList.add("hidden"); };
   });
   // 팝업이 열리면 뒤로가기 기록을 하나 넣어서, 폰 뒤로가기 버튼으로 닫히게 함
+  // 겹쳐 열린 순서를 기억해서, 뒤로가기는 맨 위 팝업만 닫음
+  var stack = [];
+  function hide(id) { var c = id === "stampModal" ? $("stampClose") : null; if (c) c.click(); else $(id).classList.add("hidden"); }
   IDS.forEach(function (id) {
     var m = $(id); if (!m) return;
     var was = isOpen(id);
     new MutationObserver(function () {
       var now = isOpen(id);
-      if (now && !was) { try { history.pushState({ modal: id }, ""); } catch (e) {} }
-      if (!now && was && history.state && history.state.modal === id) { try { history.back(); } catch (e) {} }
+      if (now && !was) { stack.push(id); try { history.pushState({ modal: id }, ""); } catch (e) {} }
+      if (!now && was) {
+        var i = stack.lastIndexOf(id); if (i >= 0) stack.splice(i, 1);
+        if (history.state && history.state.modal === id) { try { history.back(); } catch (e) {} }
+      }
       was = now;
     }).observe(m, { attributes: true, attributeFilter: ["class"] });
   });
   window.addEventListener("popstate", function () {
-    // 겹친 팝업은 위의 것만 닫기 (아래 팝업의 기록이 남아 있으면 그대로 둠)
     var keep = history.state && history.state.modal;
-    IDS.forEach(function (id) { if (id !== keep && isOpen(id)) { var c = id === "stampModal" ? $("stampClose") : null; if (c) c.click(); else $(id).classList.add("hidden"); } });
+    while (stack.length && stack[stack.length - 1] !== keep) { var top = stack.pop(); if (isOpen(top)) hide(top); }
   });
 })();
 
