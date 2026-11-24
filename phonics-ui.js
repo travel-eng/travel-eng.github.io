@@ -88,14 +88,56 @@
   $("phModal").onclick = function (e) { if (e.target === $("phModal")) $("phModal").classList.add("hidden"); };
 
   // ---------- 문장 해설 ----------
+  // ---------- 숙어·표현 ----------
+  function idmRe(i) { if (!i._re) i._re = new RegExp(i.re || i.en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"); return i._re; }
+  function idiomsIn(en) { var out = []; (window.IDIOMS || []).forEach(function (i, n) { if (idmRe(i).test(en)) out.push(n); }); return out; }
+  function idmChips(en) {
+    var ns = idiomsIn(en || "");
+    if (!ns.length) return "";
+    return '<div class="idm-row"><span class="lbl">📌 숙어·표현</span>' + ns.map(function (n) {
+      var i = IDIOMS[n]; return '<button class="idm-chip" data-idm="' + n + '">' + esc(i.en) + "<small>" + esc(i.ko.split(/[,(/]/)[0].trim()) + "</small></button>";
+    }).join("") + "</div>";
+  }
+  function exampleList() {
+    var m = {}, list = [];
+    function add(en, ko) { if (!en || m[en.toLowerCase()]) return; m[en.toLowerCase()] = 1; list.push({ en: en, ko: ko || "" }); }
+    (window.PRESET_SENTENCES || []).forEach(function (x) { add(x.en, x.ko); });
+    if (window.STORY) window.STORY.episodes.forEach(function (ep) { ep.lines.forEach(function (l) { add(l.en, l.ko); }); });
+    if (TE.allSentences) TE.allSentences().forEach(function (x) { add(x.en, x.ko); });
+    return list;
+  }
+  function showIdiom(n) {
+    var i = IDIOMS[n]; if (!i) return;
+    var ex = exampleList().filter(function (x) { return idmRe(i).test(x.en); }).slice(0, 6);
+    var sayable = i.en.indexOf("~") < 0;
+    var html = '<div class="ph-word" style="font-size:26px">' + esc(i.en) + '</div><div class="ko" style="text-align:center">' + esc(i.ko) + ' <span class="tag">' + (i.kind === "틀" ? "문장 틀" : "숙어") + "</span></div>";
+    if (i.tip) html += '<div class="ph-tip">💡 ' + esc(i.tip) + "</div>";
+    html += '<div class="label" style="margin-top:10px">앱에 나온 예문 (누르면 소리)</div>';
+    html += ex.length ? ex.map(function (x) {
+      return '<div class="idm-ex" data-say="' + esc(x.en) + '"><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k small">' + esc(x.ko) + "</div></div><span>🔊</span></div>";
+    }).join("") : '<div class="small">아직 앱 문장에는 없어요. 위 💡 예시를 참고하세요.</div>';
+    if (sayable) html += '<div class="row"><button class="big primary" id="phPlay">🔊 듣기</button><button class="big" id="phSlow">🐢 천천히</button></div>';
+    $("phBody").innerHTML = html;
+    var say = i.en.split(" / ")[0];
+    if (sayable) { $("phPlay").onclick = function () { TE.speak(say); }; $("phSlow").onclick = function () { TE.speak(say, true); }; }
+    Array.prototype.forEach.call($("phBody").querySelectorAll(".idm-ex"), function (r) { r.onclick = function () { TE.speak(r.dataset.say); }; });
+    $("phModal").classList.remove("hidden");
+    if (sayable) TE.speak(say);
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-idm]");
+    if (b) { e.stopPropagation(); showIdiom(+b.dataset.idm); }
+  });
+  TE.showIdiom = showIdiom; TE.idiomsIn = idiomsIn; TE.idmChips = idmChips;
+
   function explainHtml(en) {
     var x = (window.EXPLAIN || {})[en];
-    if (!x) return "";
+    if (!x) return idmChips(en);
     var parts = x.p.split(" / ").map(function (p) {
       var k = p.indexOf("=");
       return "<span><b>" + esc(p.slice(0, k)) + "</b>" + esc(p.slice(k + 1)) + "</span>";
     }).join("");
-    return '<details class="exp"><summary>💡 왜 이런 뜻일까? (해설 보기)</summary><div class="parts">' + parts + '</div><div class="why">' + esc(x.e) + "</div></details>";
+    return idmChips(en) + '<details class="exp"><summary>💡 왜 이런 뜻일까? (해설 보기)</summary><div class="parts">' + parts + '</div><div class="why">' + esc(x.e) + "</div></details>";
   }
 
   // 문장 속 단어를 누를 수 있게 바꾸기
@@ -183,9 +225,30 @@
     if (i < 0 || !q) return esc(text);
     return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
   }
+  var mode = "find";
+  function setMode(m) {
+    mode = m;
+    Array.prototype.forEach.call($("srSeg").querySelectorAll("button"), function (b) { b.classList.toggle("on", b.dataset.m === m); });
+    $("srInput").placeholder = m === "idm" ? "숙어 거르기 (예: 카드, get)" : "한국어나 영어로 찾기 (예: 통로, 화장실)";
+    search();
+  }
+  function idmList(q) {
+    var ql = q.toLowerCase(), body = $("srBody"), html = "";
+    ["숙어", "틀"].forEach(function (k) {
+      var rows = [];
+      IDIOMS.forEach(function (i, n) {
+        if (i.kind !== k) return;
+        if (q && i.ko.indexOf(q) < 0 && i.en.toLowerCase().indexOf(ql) < 0) return;
+        rows.push('<div class="idm-li" data-idm="' + n + '"><b>' + hl(i.en, q) + "</b> " + hl(i.ko, q) + "</div>");
+      });
+      if (rows.length) html += '<div class="idm-h">' + (k === "숙어" ? "📌 숙어 (묶어서 외우는 말)" : "🧩 문장 틀 (단어만 바꿔 쓰기)") + " " + rows.length + "개</div>" + rows.join("");
+    });
+    body.innerHTML = html || '<div class="result info">맞는 숙어가 없어요.</div>';
+  }
   function search() {
     var q = $("srInput").value.trim();
     var body = $("srBody");
+    if (mode === "idm") { idmList(q); return; }
     if (!q) { body.innerHTML = '<div class="small" style="margin-top:8px">앱에 들어 있는 단어 ' + (window.WORDS || []).length + '개와 문장에서 찾아요. 결과를 누르면 발음(파닉스)과 어원이 나와요.</div>'; return; }
     var ql = q.toLowerCase();
     var res = items().filter(function (x) { return x.ko.indexOf(q) >= 0 || x.en.toLowerCase().indexOf(ql) >= 0 || (x.exko && x.exko.indexOf(q) >= 0); });
@@ -197,7 +260,10 @@
       return '<div class="list-item" data-n="' + n + '"><div class="txt"><div class="e">' + hl(x.en, q) + ' <span class="tag">' + x.kind + '</span></div><div class="k">' + hl(x.ko, q) + "</div>" + exLine +
         '</div><button data-say="' + esc(x.en) + '">🔊</button></div>';
     }).join("");
-    if (!res.length) html = '<div class="result info">앱 단어장에는 아직 없는 말이에요.</div>';
+    var idHits = [];
+    (window.IDIOMS || []).forEach(function (i, n) { if (i.ko.indexOf(q) >= 0 || i.en.toLowerCase().indexOf(ql) >= 0) idHits.push('<div class="list-item" data-idm="' + n + '"><div class="txt"><div class="e">' + hl(i.en, q) + ' <span class="tag">' + (i.kind === "틀" ? "문장 틀" : "숙어") + '</span></div><div class="k">' + hl(i.ko, q) + "</div></div></div>"); });
+    html = idHits.slice(0, 5).join("") + html;
+    if (!res.length && !idHits.length) html = '<div class="result info">앱 단어장에는 아직 없는 말이에요.</div>';
     var enc = encodeURIComponent(q);
     html += '<div class="small" style="margin-top:10px">앱에 없는 말은 사전에서 찾아보세요 (인터넷 창이 열려요):</div>' +
       '<div class="row"><a class="big ext" target="_blank" rel="noopener" href="https://en.dict.naver.com/#/search?query=' + enc + '">네이버 영어사전</a>' +
@@ -206,7 +272,7 @@
     Array.prototype.forEach.call(body.querySelectorAll("[data-say]"), function (b) {
       b.onclick = function (e) { e.stopPropagation(); TE.speak(b.dataset.say); };
     });
-    Array.prototype.forEach.call(body.querySelectorAll(".list-item"), function (row) {
+    Array.prototype.forEach.call(body.querySelectorAll(".list-item[data-n]"), function (row) {
       row.onclick = function () {
         var x = res[+row.dataset.n];
         if (x.kind === "단어") { TE.showPhonics(x.en); return; }
@@ -224,7 +290,9 @@
       };
     });
   }
-  $("srOpen").onclick = function () { $("srModal").classList.remove("hidden"); search(); setTimeout(function () { $("srInput").focus(); }, 50); };
+  Array.prototype.forEach.call($("srSeg").querySelectorAll("button"), function (b) { b.onclick = function () { setMode(b.dataset.m); }; });
+  if ($("idmOpen")) $("idmOpen").onclick = function () { $("srInput").value = ""; $("srModal").classList.remove("hidden"); setMode("idm"); };
+  $("srOpen").onclick = function () { $("srModal").classList.remove("hidden"); setMode("find"); setTimeout(function () { $("srInput").focus(); }, 50); };
   $("srClose").onclick = function () { $("srModal").classList.add("hidden"); };
   $("srModal").onclick = function (e) { if (e.target === $("srModal")) $("srModal").classList.add("hidden"); };
   $("srInput").oninput = search;

@@ -327,6 +327,17 @@ details.exp summary{color:#8a6100}
 #srBody mark{background:var(--warn-bg);color:inherit;border-radius:4px}
 a.ext{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:4px 10px;border-radius:12px;background:var(--soft);color:var(--text);text-decoration:none;font-family:"Jua",sans-serif;font-size:14px;box-shadow:0 2px 0 var(--shadow)}
 #phModal{z-index:12}
+.idm-row{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}
+.idm-row .lbl{color:var(--muted);font-weight:700}
+.idm-chip{min-height:30px;padding:3px 10px;font-size:14px;background:var(--mint);border-radius:999px}
+.idm-chip small{color:var(--muted);margin-left:4px}
+.idm-h{margin:10px 0 2px;font-weight:700;color:var(--accent);font-size:14px}
+.idm-ex{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.idm-ex .txt{flex:1;text-align:left}
+#srSeg{margin-bottom:6px}
+#srSeg button{min-height:34px;padding:4px}
+.idm-li{padding:7px 4px;border-bottom:1px solid var(--line);font-size:15px;color:var(--muted);cursor:pointer}
+.idm-li b{color:var(--text);margin-right:4px}
 </style>
 </head>
 <body>
@@ -425,6 +436,9 @@ a.ext{display:inline-flex;align-items:center;justify-content:center;min-height:3
   <!-- 설정 -->
   <section id="tab-settings" class="hidden">
     <div class="card">
+      <div class="row" style="align-items:center"><span style="flex:1"><b>📌 숙어·표현 모음</b><br><span class="small">문장에 나온 숙어와 문장 틀을 한곳에</span></span><button id="idmOpen">열기</button></div>
+    </div>
+    <div class="card">
       <div class="label">앱 버전</div>
       <div class="row" style="align-items:center;margin-top:2px"><span id="appVer" style="flex:1"></span><button id="updBtn">🔄 새 버전 받기</button></div>
       <div class="small" id="updMsg">공부 기록은 그대로 남아요.</div>
@@ -513,6 +527,7 @@ a.ext{display:inline-flex;align-items:center;justify-content:center;min-height:3
 <div id="srModal" class="stamp-modal hidden" role="dialog" aria-label="영어로 뭐예요">
   <div class="stamp-box day-box">
     <div class="cal-head"><div class="cal-title">🔍 영어로 뭐예요?</div><button id="srClose" aria-label="닫기">✕</button></div>
+    <div class="seg" id="srSeg"><button data-m="find" class="on">🔍 찾기</button><button data-m="idm">📌 숙어·표현 모음</button></div>
     <input type="text" id="srInput" placeholder="한국어나 영어로 찾기 (예: 통로, 화장실)" autocomplete="off">
     <div id="srBody" style="text-align:left"></div>
     <button class="big modal-close-btm" data-close="srModal">닫기 ✕</button>
@@ -529,6 +544,7 @@ a.ext{display:inline-flex;align-items:center;justify-content:center;min-height:3
 <script src="explain.js"></script>
 <script src="etym.js"></script>
 <script src="phonics.js"></script>
+<script src="idioms.js"></script>
 <script src="phonics-ui.js"></script>
 
 </body>

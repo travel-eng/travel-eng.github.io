@@ -2,7 +2,7 @@
   "use strict";
 
   // ---------- 저장 ----------
-  var APP_VERSION = "1.17 (2026-11-24)";
+  var APP_VERSION = "1.18 (2026-11-24)";
   var KEY = "travelEnglish.v1";
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
