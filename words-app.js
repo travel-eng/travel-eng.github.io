@@ -248,8 +248,8 @@
     $("slowW").onclick = function () { TE.speak(w.en, true); };
     if (TE.decorate) { TE.decorate($("wEx"), $("wExExp")); TE.decorate($("wBig"), null); }
     $("phW").onclick = function () {
-      // 두 단어짜리(thank you 등)는 첫 단어부터 보여 주고, 나머지는 예문에서 눌러 보게 함
-      if (TE.showPhonics) TE.showPhonics(w.en.split(" ")[0]);
+      // 두 단어짜리(thank you, credit card 등)는 묶음 전체를 보여 주고, 단어별로 눌러 볼 수 있게 함
+      if (TE.showPhonics) TE.showPhonics(w.en);
     };
     $("prevW").onclick = function () { card--; renderStudy(set, readOnly); };
     if ($("nextW")) $("nextW").onclick = function () { card++; renderStudy(set, readOnly); };

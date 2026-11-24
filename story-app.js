@@ -76,7 +76,7 @@
       ep.wordIdx.map(function (wi) { var w = WORDS[wi]; return '<button class="chip" data-w="' + esc(w.en) + '"><b>' + esc(w.en) + "</b> " + esc(w.ko) + "</button>"; }).join("") +
       '</div><div class="row"><button class="big" id="sBack">◀ 지도</button><button class="big primary" id="sGo">대화 시작 ▶</button></div></div>');
     Array.prototype.forEach.call($("storyMain").querySelectorAll(".chip"), function (b) {
-      b.onclick = function () { if (TE.showPhonics) TE.showPhonics(b.dataset.w.split(" ")[0]); else TE.speak(b.dataset.w); };
+      b.onclick = function () { if (TE.showPhonics) TE.showPhonics(b.dataset.w); else TE.speak(b.dataset.w); };
     });
     $("sBack").onclick = home;
     $("sGo").onclick = function () { E.step = 1; E.line = 0; renderChat(); };

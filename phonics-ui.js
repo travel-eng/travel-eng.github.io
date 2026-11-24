@@ -21,7 +21,33 @@
   }
 
   // ---------- 파닉스 창 ----------
-  function showPhonics(word) {
+  function meaningOf(en) { var m = ""; (window.WORDS || []).forEach(function (w) { if (w.en.toLowerCase() === en.toLowerCase()) m = w.ko; }); return m; }
+  // 두 단어 이상 (credit card, no worries 등): 묶음 전체를 보여 주고, 단어별로 눌러 볼 수 있게
+  function showPhrase(phrase) {
+    var words = phrase.split(/\s+/);
+    var meaning = meaningOf(phrase);
+    var html = '<div class="ph-word">' + esc(phrase) + "</div>";
+    if (meaning) html += '<div class="ko" style="text-align:center">' + esc(meaning) + "</div>";
+    var kos = words.map(function (w) { var d = lookup(w); return d ? d.ko : w; });
+    html += '<div class="ph-ko">≈ ' + esc(kos.join(" ")) + "</div>";
+    html += '<div class="label" style="text-align:center">단어를 누르면 하나씩 발음·어원이 나와요</div><div class="ph-chunks">' + words.map(function (w) {
+      var d = lookup(w), m = meaningOf(w.replace(/[^A-Za-z']/g, ""));
+      return '<div class="ph-chunk" data-pw="' + esc(w) + '"><div class="l">' + esc(w) + '</div><div class="s">' + esc(d ? "[" + d.ipa + "]" : "") + (m ? "<br>" + esc(m) : "") + "</div></div>";
+    }).join("") + "</div>";
+    var et = window.ETYM && window.ETYM[phrase.toLowerCase()];
+    if (et) html += '<div class="etym"><div class="label">🌱 어원 (말의 뿌리)</div>' + esc(et) + "</div>";
+    html += '<div class="row"><button class="big primary" id="phPlay">🔊 듣기</button><button class="big" id="phSlow">🐢 천천히</button></div>';
+    $("phBody").innerHTML = html;
+    $("phPlay").onclick = function () { TE.speak(phrase); };
+    $("phSlow").onclick = function () { TE.speak(phrase, true); };
+    Array.prototype.forEach.call($("phBody").querySelectorAll("[data-pw]"), function (c) {
+      c.onclick = function () { showPhonics(c.dataset.pw, phrase); };
+    });
+    $("phModal").classList.remove("hidden");
+    TE.speak(phrase);
+  }
+  function showPhonics(word, fromPhrase) {
+    if (/\S\s+\S/.test(word.trim())) { showPhrase(word.trim()); return; }
     var d = lookup(word);
     var clean = word.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
     var meaning = "";
@@ -47,7 +73,9 @@
     var et = window.ETYM && window.ETYM[clean.toLowerCase()];
     if (et) html += '<div class="etym"><div class="label">🌱 어원 (단어의 뿌리)</div>' + esc(et) + "</div>";
     html += '<div class="row"><button class="big primary" id="phPlay">🔊 듣기</button><button class="big" id="phSlow">🐢 천천히</button></div>';
+    if (fromPhrase) html += '<div class="row"><button class="big" id="phBackPhrase">◀ ' + esc(fromPhrase) + ' 전체 보기</button></div>';
     $("phBody").innerHTML = html;
+    if (fromPhrase) $("phBackPhrase").onclick = function () { showPhrase(fromPhrase); };
     $("phPlay").onclick = function () { TE.speak(clean); };
     $("phSlow").onclick = function () { TE.speak(clean, true); };
     Array.prototype.forEach.call($("phBody").querySelectorAll(".ph-chunk"), function (c) {
@@ -181,7 +209,7 @@
     Array.prototype.forEach.call(body.querySelectorAll(".list-item"), function (row) {
       row.onclick = function () {
         var x = res[+row.dataset.n];
-        if (x.kind === "단어" && x.en.indexOf(" ") < 0) { TE.showPhonics(x.en); return; }
+        if (x.kind === "단어") { TE.showPhonics(x.en); return; }
         // 여러 단어면 단어별로 눌러 볼 수 있게 보여 주기
         $("phBody").innerHTML = '<div class="ph-word" style="font-size:24px" id="phSent"></div><div class="ko" style="text-align:center">' + esc(x.ko) + "</div>" +
           '<div class="small" style="text-align:center;margin-top:6px">👆 단어를 누르면 발음과 어원이 나와요</div>' +
