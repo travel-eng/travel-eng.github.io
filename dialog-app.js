@@ -28,6 +28,9 @@
   TE._dlgJudge = judge;
 
   function wrap() { return $("dlgWrap"); }
+  function doneToday(id) { var r = (state.cal || {})[TE.dateKey()]; return !!(r && r.dlg && r.dlg.indexOf(id) >= 0); }
+  // 오늘의 추천 장면: 날마다 하나씩 돌아가며
+  function todayIdx() { var p = TE.dateKey().split("-"); return Math.floor(Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5) % DL.length; }
 
   // ---- 📚 내가 배운 문장: 오늘의 문장·이야기·따라 말하기로 배운 것 ----
   function learnedPool() {
@@ -62,11 +65,11 @@
 
   function renderList() {
     stopRec(); cur = null;
-    var done = DL.filter(function (d) { return state.dlg[d.id]; }).length;
-    wrap().innerHTML = '<div class="card"><div class="label">💬 듣고 대답하기 · 장면을 골라요 (' + done + "/" + DL.length + ")</div>" +
-      '<div class="small">상대가 영어로 물어보면 🎤로 대답해요. 정답이 하나가 아니라서, 뜻이 통하면 통과예요.</div>' +
-      '<div class="dlg-grid"><button class="dlg-pick" id="dlgMine"><span class="ic">📚</span><b>내가 배운 문장</b><span class="small">배운 ' + learnedPool().length + "개 중 5개" + (state.dlg.mine ? " ✅" : "") + "</span></button>" + DL.map(function (d, i) {
-        return '<button class="dlg-pick" data-i="' + i + '"><span class="ic">' + d.icon + "</span><b>" + esc(d.title) + '</b><span class="small">' + esc(d.scene) + " · " + d.turns.length + "번" + (state.dlg[d.id] ? " ✅" : "") + "</span></button>";
+    var ti = todayIdx(), anyToday = DL.some(function (d) { return doneToday(d.id); }) || doneToday("mine");
+    wrap().innerHTML = '<div class="card"><div class="label">💬 듣고 대답하기 · ' + (anyToday ? "✅ 오늘 할 일 완료! 더 해도 좋아요" : "오늘 한 장면 하기 (⭐ 추천)") + "</div>" +
+      '<div class="small">상대가 영어로 물어보면 🎤로 대답해요. 뜻이 통하면 통과예요. ✅는 오늘 한 것 (매일 새로 시작해요).</div>' +
+      '<div class="dlg-grid"><button class="dlg-pick" id="dlgMine"><span class="ic">📚</span><b>내가 배운 문장</b><span class="small">배운 ' + learnedPool().length + "개 중 5개" + (doneToday("mine") ? " ✅" : "") + "</span></button>" + DL.map(function (d, i) {
+        return '<button class="dlg-pick' + (i === ti ? " today" : "") + '" data-i="' + i + '"><span class="ic">' + d.icon + (i === ti ? ' <span class="small">⭐ 오늘</span>' : "") + "</span><b>" + esc(d.title) + '</b><span class="small">' + esc(d.scene) + " · " + d.turns.length + "번" + (doneToday(d.id) ? " ✅" : "") + "</span></button>";
       }).join("") + "</div></div>";
     Array.prototype.forEach.call(wrap().querySelectorAll(".dlg-pick"), function (b) {
       if (b.id !== "dlgMine") b.onclick = function () { start(DL[+b.dataset.i]); };
@@ -161,13 +164,18 @@
   function next(turn, said) {
     stopRec();
     cur.log.push({ q: turn.q, ko: turn.ko, a: said });
+    if (said !== "(건너뜀)") cur.answered = (cur.answered || 0) + 1;
     cur.t++; cur.tries = 0;
     if (cur.t < cur.d.turns.length) { renderTurn(true); return; }
     state.dlg[cur.d.id] = Math.max(state.dlg[cur.d.id] || 0, cur.firstOk) || 1;
+    var n = cur.d.turns.length, enough = (cur.answered || 0) >= Math.ceil(n / 2);
+    var first = enough && !DL.some(function (d) { return doneToday(d.id); }) && !doneToday("mine");
+    if (enough && TE.addLog) TE.addLog("dlg", [cur.d.id]);
     TE.save();
-    var n = cur.d.turns.length;
+    if (TE.checkDay) TE.checkDay();
     wrap().innerHTML = '<div class="card" style="text-align:center"><div style="font-size:40px">' + cur.d.icon + '</div><div class="en">대화 끝! 🎉</div>' +
       '<div class="ko">한 번에 통과: ' + cur.firstOk + " / " + n + "</div>" +
+      (first ? '<div class="result ok">✅ 오늘의 대화 완료!</div>' : enough ? "" : '<div class="result info">건너뛴 게 많아서 오늘 할 일로는 안 쳐요. 절반 이상 대답해 봐요!</div>') +
       '<div class="small">' + (cur.firstOk === n ? "완벽해요! 실제 여행에서도 이렇게 하면 돼요." : "한 번 더 하면 더 자연스러워져요.") + "</div>" +
       '<div class="row"><button id="dlgAgain">🔁 다시 하기</button><button class="primary" id="dlgList">다른 장면 ▶</button></div></div>';
     var d = cur.d;
@@ -184,6 +192,7 @@
     if (m === "dlg" && !cur) renderList();
     if (m !== "dlg") stopRec();
   }
+  TE.openDialogs = function () { if (cur && cur.t >= cur.d.turns.length) cur = null; if (!cur) { setMode("dlg"); renderList(); } else setMode("dlg"); };
   Array.prototype.forEach.call($("pMode").querySelectorAll("button"), function (b) { b.onclick = function () { setMode(b.dataset.m); }; });
   setMode(state.pMode === "dlg" ? "dlg" : "rep");
 })();
