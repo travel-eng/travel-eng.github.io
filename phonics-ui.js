@@ -145,14 +145,66 @@
   TE.showStudy = showStudy;
   TE.showIdiom = showIdiom; TE.idiomsIn = idiomsIn; TE.idmChips = idmChips;
 
+  // ---------- 연음 ----------
+  function linksIn(en) {
+    var low = en.toLowerCase(), used = [], out = [];
+    (window.LINKS || []).forEach(function (L) {
+      if (!L._re) L._re = new RegExp("(^|[^a-z'])(" + L.re.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")(?![a-z'])", "gi");
+      L._re.lastIndex = 0; var m;
+      while ((m = L._re.exec(low))) {
+        var a = m.index + m[1].length, b = a + m[2].length;
+        if (!used.some(function (u) { return a < u[1] && b > u[0]; })) { used.push([a, b]); out.push({ a: a, b: b, L: L, text: en.slice(a, b) }); }
+      }
+    });
+    return out.sort(function (x, y) { return x.a - y.a; });
+  }
+  function linkHtml(en) {
+    var ls = linksIn(en || "");
+    if (!ls.length) return "";
+    var marked = "", pos = 0;
+    ls.forEach(function (x) { marked += esc(en.slice(pos, x.a)) + '<span class="lk">' + esc(x.text).replace(/ /g, "‿") + "</span>"; pos = x.b; });
+    marked += esc(en.slice(pos));
+    var types = {};
+    var rows = ls.map(function (x, i) {
+      var T = window.LINK_TYPES[x.L.t]; types[x.L.t] = T;
+      return '<div class="lk-row" data-lk="' + esc(x.text) + '"><b>' + esc(x.text) + '</b> → <span class="lk-k">' + esc(x.L.k) + '</span> <span class="tag">' + esc(T.name) + "</span> 🔊</div>";
+    }).join("");
+    var tips = Object.keys(types).map(function (k) { return "<div>• <b>" + esc(types[k].name) + ":</b> " + esc(types[k].tip) + "</div>"; }).join("");
+    return '<details class="exp lk-box"><summary>🔗 이어 읽으면 소리가 바뀌어요 (연음 ' + ls.length + '곳)</summary>' +
+      '<div class="lk-line">' + marked + "</div>" + rows +
+      '<div class="row"><button class="lk-words" data-en="' + esc(en) + '">🐢 한 단어씩</button><button class="lk-nat" data-en="' + esc(en) + '">🔗 이어서</button></div>' +
+      '<div class="small">' + tips + '<div style="margin-top:4px">한글은 비슷한 소리예요. 천천히 또박또박 말해도 다 알아들어요!</div></div></details>';
+  }
+  // 한 단어씩 끊어서 읽기 (이어 읽기와 비교용)
+  function speakWords(en) {
+    var synth = window.speechSynthesis; if (!synth) return;
+    synth.cancel();
+    var vs = synth.getVoices().filter(function (v) { return /^en[-_]/i.test(v.lang); });
+    var v = vs.filter(function (x) { return x.name === TE.state.voice; })[0] || vs.filter(function (x) { return /en[-_]US/i.test(x.lang); })[0] || vs[0];
+    setTimeout(function () {
+      en.replace(/[^A-Za-z0-9' -]/g, " ").split(/\s+/).filter(Boolean).forEach(function (w) {
+        var u = new SpeechSynthesisUtterance(w); u.lang = "en-US"; if (v) { u.voice = v; u.lang = v.lang; } u.rate = 0.75; synth.speak(u);
+      });
+    }, 120);
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest && e.target.closest(".lk-row,.lk-words,.lk-nat");
+    if (!t) return;
+    e.stopPropagation();
+    if (t.classList.contains("lk-row")) TE.speak(t.dataset.lk);
+    else if (t.classList.contains("lk-words")) speakWords(t.dataset.en);
+    else TE.speak(t.dataset.en);
+  });
+  TE.linksIn = linksIn; TE.linkHtml = linkHtml;
+
   function explainHtml(en) {
     var x = (window.EXPLAIN || {})[en];
-    if (!x) return idmChips(en);
+    if (!x) return idmChips(en) + linkHtml(en);
     var parts = x.p.split(" / ").map(function (p) {
       var k = p.indexOf("=");
       return "<span><b>" + esc(p.slice(0, k)) + "</b>" + esc(p.slice(k + 1)) + "</span>";
     }).join("");
-    return idmChips(en) + '<details class="exp"><summary>💡 왜 이런 뜻일까? (해설 보기)</summary><div class="parts">' + parts + '</div><div class="why">' + esc(x.e) + "</div></details>";
+    return idmChips(en) + '<details class="exp"><summary>💡 왜 이런 뜻일까? (해설 보기)</summary><div class="parts">' + parts + '</div><div class="why">' + esc(x.e) + "</div></details>" + linkHtml(en);
   }
 
   // 문장 속 단어를 누를 수 있게 바꾸기
