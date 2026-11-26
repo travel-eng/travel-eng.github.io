@@ -13,6 +13,7 @@
   function judge(turn, heard) {
     var h = norm(heard);
     if (!h.trim()) return { ok: false, score: 0 };
+    if (turn.mine) { var sc = TE.compare(turn.ans[0], heard).score; return { ok: sc >= 0.6, score: sc }; }
     var keysOk = turn.keys.every(function (g) {
       return g.some(function (k) {
         if (k === "#any") return h.trim().length > 0;
@@ -27,6 +28,36 @@
   TE._dlgJudge = judge;
 
   function wrap() { return $("dlgWrap"); }
+
+  // ---- 📚 내가 배운 문장: 오늘의 문장·이야기·따라 말하기로 배운 것 ----
+  function learnedPool() {
+    var seen = {}, out = [];
+    function add(s) { if (s && !seen[s.id]) { seen[s.id] = 1; out.push(s); } }
+    (TE.learnedSentences ? TE.learnedSentences() : []).forEach(add);
+    Object.keys(state.cal || {}).forEach(function (k) { (state.cal[k].sent || []).forEach(function (id) { add(TE.byId(id)); }); });
+    return out;
+  }
+  function cueFor(s) {
+    // 이야기 문장이면 바로 앞에 상대가 한 말을 질문으로 씀
+    var m = /^s(\d+)_(\d+)$/.exec(s.id);
+    if (m && window.STORY) {
+      var ep = window.STORY.episodes[+m[1]], prev = ep && ep.lines[+m[2] - 1];
+      if (prev && prev.who === "npc") return { q: prev.en, qko: prev.ko };
+    }
+    // 장면 대화의 모범 대답과 같은 문장이면 그 질문을 씀
+    var low = s.en.toLowerCase(), hit = null;
+    DL.forEach(function (d) { d.turns.forEach(function (t) { if (!hit && t.ans.some(function (a) { return a.toLowerCase() === low; })) hit = t; }); });
+    return hit ? { q: hit.q, qko: hit.qko } : null;
+  }
+  function mineScene() {
+    var pool = learnedPool().slice();
+    for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    var turns = pool.slice(0, 5).map(function (s) {
+      var c = cueFor(s), first = s.en.split(" ").slice(0, 2).join(" ");
+      return { mine: true, q: c ? c.q : "", qko: c ? c.qko : "", ko: s.ko, ans: [s.en], hint: "배운 문장이에요: " + s.ko + " → " + first + " …" };
+    });
+    return { id: "mine", icon: "📚", scene: "복습", title: "내가 배운 문장", who: "상대방", turns: turns };
+  }
   function stopRec() { if (rec) { try { rec.abort(); } catch (e) {} rec = null; } }
 
   function renderList() {
@@ -34,12 +65,17 @@
     var done = DL.filter(function (d) { return state.dlg[d.id]; }).length;
     wrap().innerHTML = '<div class="card"><div class="label">💬 듣고 대답하기 · 장면을 골라요 (' + done + "/" + DL.length + ")</div>" +
       '<div class="small">상대가 영어로 물어보면 🎤로 대답해요. 정답이 하나가 아니라서, 뜻이 통하면 통과예요.</div>' +
-      '<div class="dlg-grid">' + DL.map(function (d, i) {
+      '<div class="dlg-grid"><button class="dlg-pick" id="dlgMine"><span class="ic">📚</span><b>내가 배운 문장</b><span class="small">배운 ' + learnedPool().length + "개 중 5개" + (state.dlg.mine ? " ✅" : "") + "</span></button>" + DL.map(function (d, i) {
         return '<button class="dlg-pick" data-i="' + i + '"><span class="ic">' + d.icon + "</span><b>" + esc(d.title) + '</b><span class="small">' + esc(d.scene) + " · " + d.turns.length + "번" + (state.dlg[d.id] ? " ✅" : "") + "</span></button>";
       }).join("") + "</div></div>";
     Array.prototype.forEach.call(wrap().querySelectorAll(".dlg-pick"), function (b) {
-      b.onclick = function () { start(DL[+b.dataset.i]); };
+      if (b.id !== "dlgMine") b.onclick = function () { start(DL[+b.dataset.i]); };
     });
+    $("dlgMine").onclick = function () {
+      var sc = mineScene();
+      if (!sc.turns.length) { wrap().querySelector(".small").innerHTML = "아직 배운 문장이 없어요. ☀️오늘 탭에서 문장을 외우거나 🔁따라 말하기에 성공하면 여기 나와요."; return; }
+      start(sc);
+    };
   }
 
   function start(d) { cur = { d: d, t: 0, tries: 0, firstOk: 0, log: [] }; renderTurn(true); }
@@ -47,20 +83,23 @@
   function renderTurn(play) {
     var d = cur.d, turn = d.turns[cur.t];
     var past = cur.log.map(function (l) {
-      return '<div class="bub npc"><b>' + esc(d.who) + ":</b> " + esc(l.q) + '</div><div class="bub me">' + esc(l.a) + "</div>";
+      return '<div class="bub npc">' + (l.q ? "<b>" + esc(d.who) + ":</b> " + esc(l.q) : "💭 " + esc(l.ko)) + '</div><div class="bub me">' + esc(l.a) + "</div>";
     }).slice(-2).join("");
     wrap().innerHTML = '<div class="card">' +
       '<div class="row" style="align-items:center;margin:0"><span class="label" style="flex:1;margin:0">' + d.icon + " " + esc(d.title) + " · " + (cur.t + 1) + "/" + d.turns.length + '</span><button id="dlgBack">◀ 장면</button></div>' +
       '<div class="chat">' + past +
-      '<div class="bub npc" id="dlgQ"><b>' + esc(d.who) + ':</b> <span id="dlgQt">🎧 잘 듣고 대답해 보세요</span></div></div>' +
-      '<div class="row"><button id="dlgPlay">🔊 다시</button><button id="dlgSlow">🐢 천천히</button><button id="dlgShow">👀 글자</button></div>' +
+      (turn.q ? '<div class="bub npc" id="dlgQ"><b>' + esc(d.who) + ':</b> <span id="dlgQt">🎧 잘 듣고 대답해 보세요</span></div></div>' +
+      '<div class="row"><button id="dlgPlay">🔊 다시</button><button id="dlgSlow">🐢 천천히</button><button id="dlgShow">👀 글자</button></div>'
+      : '<div class="bub npc" id="dlgQ">💭 이 말을 영어로 해 보세요<div class="en" style="font-size:18px;margin:2px 0 0">' + esc(turn.ko) + '</div><span id="dlgQt"></span></div></div>') +
       '<div class="row"><button class="big mic primary" id="dlgMic">🎤 대답하기</button></div>' +
       '<div class="row"><button id="dlgHint">💡 힌트</button><button id="dlgModel">🗣 모범 대답</button><button id="dlgSkip">건너뛰기 ▶</button></div>' +
       '<div id="dlgInfo"></div><div id="dlgRes"></div></div>';
     $("dlgBack").onclick = renderList;
-    $("dlgPlay").onclick = function () { TE.speak(turn.q); };
-    $("dlgSlow").onclick = function () { TE.speak(turn.q, true); };
-    $("dlgShow").onclick = showQ;
+    if (turn.q) {
+      $("dlgPlay").onclick = function () { TE.speak(turn.q); };
+      $("dlgSlow").onclick = function () { TE.speak(turn.q, true); };
+      $("dlgShow").onclick = showQ;
+    }
     $("dlgHint").onclick = function () { $("dlgInfo").innerHTML = '<div class="result info">💡 ' + esc(turn.hint) + "</div>"; };
     $("dlgModel").onclick = function () {
       showQ();
@@ -72,10 +111,11 @@
     };
     $("dlgSkip").onclick = function () { next(turn, "(건너뜀)"); };
     $("dlgMic").onclick = function () { answer(turn); };
-    if (play) setTimeout(function () { TE.speak(turn.q); }, 250);
+    if (play && turn.q) setTimeout(function () { TE.speak(turn.q); }, 250);
   }
   function showQ() {
     var turn = cur.d.turns[cur.t];
+    if (!turn.q) { $("dlgQt").innerHTML = '<div class="small">' + esc(turn.ans[0]) + "</div>"; return; }
     $("dlgQt").innerHTML = esc(turn.q) + '<div class="small">' + esc(turn.qko) + "</div>";
   }
 
@@ -97,7 +137,8 @@
       if (best.ok) {
         if (cur.tries === 1) cur.firstOk++;
         showQ();
-        res.innerHTML = '<div class="result ok">🎉 통했어요!' + said + '<div class="heard">다른 대답 예: ' + esc(turn.ans[0]) + '</div><div class="row" style="margin-top:6px"><button class="primary" id="dlgNext">다음 ▶</button></div></div>';
+        if (turn.mine) TE.speak(turn.ans[0]);
+        res.innerHTML = '<div class="result ok">🎉 ' + (turn.mine ? "잘 기억했어요!" : "통했어요!") + said + '<div class="heard">' + (turn.mine ? "배운 문장: " : "다른 대답 예: ") + esc(turn.ans[0]) + '</div><div class="row" style="margin-top:6px"><button class="primary" id="dlgNext">다음 ▶</button></div></div>';
         $("dlgNext").onclick = function () { next(turn, heard); };
       } else {
         res.innerHTML = '<div class="result ' + (best.score >= 0.4 ? "info" : "bad") + '">' + (best.score >= 0.4 ? "🙂 거의 됐어요! 한 번 더 해 봐요." : "😅 질문과 조금 다른 대답 같아요. 💡 힌트를 보고 다시 해 봐요.") + said +
@@ -119,7 +160,7 @@
 
   function next(turn, said) {
     stopRec();
-    cur.log.push({ q: turn.q, a: said });
+    cur.log.push({ q: turn.q, ko: turn.ko, a: said });
     cur.t++; cur.tries = 0;
     if (cur.t < cur.d.turns.length) { renderTurn(true); return; }
     state.dlg[cur.d.id] = Math.max(state.dlg[cur.d.id] || 0, cur.firstOk) || 1;
