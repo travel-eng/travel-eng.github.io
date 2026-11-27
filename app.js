@@ -2,7 +2,7 @@
   "use strict";
 
   // ---------- 저장 ----------
-  var APP_VERSION = "1.24 (2026-11-27)";
+  var APP_VERSION = "1.25 (2026-11-27)";
   var KEY = "travelEnglish.v1";
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
@@ -402,7 +402,7 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function showResult(el, kind, html) { el.innerHTML = '<div class="result ' + kind + '">' + html + "</div>"; }
   function alertBox(msg) { var w = $("browserWarn"); w.textContent = msg; w.classList.remove("hidden"); }
-  var PRAC = { words: 1, practice: 1, game: 1 };
+  var PRAC = { words: 1, practice: 1 };
   function showTab(name) {
     if (name === "prac") name = PRAC[state.pracTab] ? state.pracTab : "words";
     if (PRAC[name]) { state.pracTab = name; save(); }
