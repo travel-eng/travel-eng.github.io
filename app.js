@@ -2,7 +2,7 @@
   "use strict";
 
   // ---------- 저장 ----------
-  var APP_VERSION = "1.27 (2026-11-27)";
+  var APP_VERSION = "1.28 (2026-11-27)";
   var KEY = "travelEnglish.v1";
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
@@ -404,14 +404,15 @@
   function alertBox(msg) { var w = $("browserWarn"); w.textContent = msg; w.classList.remove("hidden"); }
   function showTab(name) {
     if (name === "prac") name = "words";
-    ["todo", "today", "story", "words", "game", "practice", "cal", "settings"].forEach(function (t) {
+    ["todo", "today", "srev", "story", "words", "game", "practice", "cal", "settings"].forEach(function (t) {
       $("tab-" + t).classList.toggle("hidden", t !== name);
     });
-    var navName = name === "today" || name === "cal" ? "todo" : name;
+    var navName = name === "today" || name === "cal" || name === "srev" ? "todo" : name;
     Array.prototype.forEach.call(document.querySelectorAll("nav button"), function (b) {
       b.classList.toggle("on", b.dataset.tab === navName);
     });
     if (name === "todo" && window.TE.renderTodo) window.TE.renderTodo();
+    if (name === "srev" && window.TE.renderSRev) window.TE.renderSRev();
     if (name === "settings") renderList();
     if (name === "today") { renderToday(); if (window.TE.renderCalendar) window.TE.renderCalendar(); }
     if (name === "cal" && window.TE.renderCalendar) window.TE.renderCalendar();

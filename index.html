@@ -364,6 +364,12 @@ nav button.on svg.ic{stroke-width:2.4}
 .todo.done .t{color:var(--muted)}
 .cal-grid.week{margin-top:6px}
 .cal-grid.week .d{aspect-ratio:auto;height:50px}
+.sr-ko{font-size:22px;font-family:"Jua","Gowun Dodum",sans-serif;margin:6px 0}
+.sr-dots{display:flex;gap:4px;margin:2px 0 6px}
+.sr-dots i{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.sr-dots i.on{background:var(--accent)}
+.sr-hint{color:var(--muted);font-size:15px;margin:2px 0}
+#srevMain .row button{flex:1}
 </style>
 </head>
 <body>
@@ -412,6 +418,11 @@ nav button.on svg.ic{stroke-width:2.4}
       </div>
       <div class="streak" id="streak"></div>
     </div>
+  </section>
+
+  <!-- 문장 복습 카드 -->
+  <section id="tab-srev" class="hidden">
+    <div class="card" id="srevMain"></div>
   </section>
 
   <!-- 이야기 -->
@@ -607,6 +618,7 @@ nav button.on svg.ic{stroke-width:2.4}
 <script src="connect.js"></script>
 <script src="phonics-ui.js"></script>
 <script src="dialog-app.js"></script>
+<script src="sreview.js"></script>
 
 </body>
 </html>

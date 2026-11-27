@@ -85,6 +85,8 @@
     if (r.needS === undefined && TE.storyAvailable) { r.needS = TE.storyAvailable() >= 0; TE.save(); }
     // 듣고 대답하기 하루 1장면 (이미 도장 받은 날에는 새로 요구하지 않음)
     if (r.needD === undefined && window.DIALOGS) { r.needD = !r.stamp; TE.save(); }
+    // 문장 복습 카드 (복습할 문장이 있는 날만)
+    if (r.needSR === undefined && TE.sentDue) { r.needSR = !r.stamp && TE.sentDue() > 0; TE.save(); }
   }
   function dayStatus(key) {
     var r = state.cal[key] || {};
@@ -92,7 +94,8 @@
     var w = !!r.w, rv = !r.needR || !!r.r;
     var sd = !!(r.story && r.story.length), so = !r.needS || sd;
     var dd = !!(r.dlg && r.dlg.length), dok = !r.needD || dd;
-    return { s: s, w: w, r: rv, st: so, stDone: sd, needR: !!r.needR, needS: !!r.needS, d: dok, dDone: dd, needD: !!r.needD, all: s && w && rv && so && dok, any: s || w || !!r.r || sd || dd };
+    var srd = !!r.sr, srok = !r.needSR || srd;
+    return { s: s, w: w, r: rv, st: so, stDone: sd, needR: !!r.needR, needS: !!r.needS, d: dok, dDone: dd, needD: !!r.needD, sr: srd, needSR: !!r.needSR, all: s && w && rv && so && dok && srok, any: s || w || !!r.r || sd || dd || srd };
   }
   function checkDay() {
     ensureNeedR();
@@ -125,6 +128,7 @@
       { ok: st.w, ic: "📖", t: set ? "오늘의 단어 (" + stageName(set.stage) + ")" : "단어 공부 (모두 배웠어요!)", go: "words" }
     ];
     if (st.needS || st.stDone) items.push({ ok: st.stDone, ic: "🧳", t: "오늘의 이야기 (" + (TE.storyTripName ? TE.storyTripName() : "여행") + ")", go: "story" });
+    if (st.needSR || st.sr || (TE.sentDue && TE.sentDue() > 0)) items.push({ ok: st.sr, ic: "🧠", t: "문장 복습 카드" + (TE.sentTodayLabel ? TE.sentTodayLabel() : ""), go: "srev" });
     if (window.DIALOGS) items.push({ ok: st.dDone, ic: "🗣️", t: "오늘의 대화 (듣고 대답하기)", go: "dlg" });
     if (st.needR) items.push({ ok: st.r, ic: "🔁", t: "복습" + (due ? " (" + due + "개 남음)" : ""), go: "review" });
     var html = items.map(function (it) {
@@ -149,6 +153,7 @@
       b.onclick = function () {
         var g = b.dataset.go;
         if (g === "today") { TE.showTab("today"); return; }
+        if (g === "srev") { TE.showTab("srev"); return; }
         if (g === "story") { TE.showTab("story"); return; }
         if (g === "dlg") { TE.showTab("practice"); if (TE.openDialogs) TE.openDialogs(); return; }
         if (g === "review") { mode = "review"; startReview(); }
@@ -481,7 +486,7 @@
     $("dayTitle").innerHTML = (+p[1]) + "월 " + (+p[2]) + "일 " + badge;
     $("dayBody").innerHTML =
       '<div class="small">' + (st.s ? "✅" : "⬜") + " 오늘의 문장 &nbsp; " + (st.w ? "✅" : "⬜") + " 단어 테스트" +
-      (r.needR ? " &nbsp; " + (r.r ? "✅" : "⬜") + " 복습" : "") + (r.needS || st.stDone ? " &nbsp; " + (st.stDone ? "✅" : "⬜") + " 이야기" : "") + (r.needD || st.dDone ? " &nbsp; " + (st.dDone ? "✅" : "⬜") + " 대화" : "") + "</div>" + body;
+      (r.needR ? " &nbsp; " + (r.r ? "✅" : "⬜") + " 복습" : "") + (r.needS || st.stDone ? " &nbsp; " + (st.stDone ? "✅" : "⬜") + " 이야기" : "") + (r.needD || st.dDone ? " &nbsp; " + (st.dDone ? "✅" : "⬜") + " 대화" : "") + (r.needSR || st.sr ? " &nbsp; " + (st.sr ? "✅" : "⬜") + " 문장 복습" : "") + "</div>" + body;
     Array.prototype.forEach.call($("dayBody").querySelectorAll("[data-say]"), function (b) {
       b.onclick = function (e) { e.stopPropagation(); TE.speak(b.dataset.say); };
     });
