@@ -481,19 +481,28 @@
     var rev = (r.rev || []).filter(function (i) { return (r.words || []).indexOf(i) < 0; }).map(function (i) { return WORDS[i]; });
     var sents = (r.sent || []).map(function (id) { return TE.byId(id); }).filter(Boolean);
     var eps = (r.story || []).map(function (n) { var ep = window.STORY.episodes[n]; return ep ? { en: TE.storyLabel ? TE.storyLabel(n) : ep.icon + " " + (n + 1) + "화 " + ep.title, ko: ep.key, say: ep.key } : null; }).filter(Boolean);
-    var body = (eps.length ? '<div class="label" style="margin-top:14px">🧳 여행 이야기</div>' + eps.map(function (x) {
+    var epsHtml = eps.length ? '<div class="label" style="margin-top:14px">🧳 여행 이야기</div>' + eps.map(function (x) {
       return '<div class="list-item" data-st="' + esc(x.say) + '" data-ko=""><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k">핵심 문장: ' + esc(x.ko) + '</div></div><button data-say="' + esc(x.say) + '">🔊</button></div>';
-    }).join("") : "") + sec("📖 새로 배운 단어 (" + words.length + ")", words) +
-      sec("🔁 복습한 단어 (" + rev.length + ")", rev) +
-      sec("💬 공부한 문장 (" + sents.length + ") · 누르면 공부 화면", sents);
+    }).join("") : "";
     var dl = (r.dlg || []).map(function (id) { var d = (window.DIALOGS || []).filter(function (x) { return x.id === id; })[0]; return d ? d.icon + " " + d.title : id === "mine" ? "📚 내가 배운 문장" : null; }).filter(Boolean);
-    if (dl.length) body += '<div class="label" style="margin-top:14px">💬 듣고 대답하기</div><div class="small">' + dl.map(esc).join(" · ") + "</div>";
+    var dlHtml = dl.length ? '<div class="label" style="margin-top:14px">🎧 듣고 대답하기</div><div class="small">' + dl.map(esc).join(" · ") + "</div>" : "";
+    // 순서: 그날 새로 배운 단어 → 문장 → 대화 → 이야기 → (맨 아래) 복습한 단어
+    var body = sec("📖 새로 배운 단어 (" + words.length + ")", words) +
+      sec("💬 공부한 문장 (" + sents.length + ") · 누르면 공부 화면", sents) +
+      dlHtml + epsHtml +
+      sec("🔁 복습한 단어 (" + rev.length + ")", rev);
     if (!body) body = '<div class="ko" style="margin-top:12px">이 날은 공부 기록이 없어요.</div>';
     var badge = r.stamp ? '<span class="mini-stamp" style="width:44px;height:44px;font-size:13px;transform:rotate(-12deg)">참잘</span>' : "";
     $("dayTitle").innerHTML = (+p[1]) + "월 " + (+p[2]) + "일 " + badge;
     $("dayBody").innerHTML =
-      '<div class="small">' + (st.s ? "✅" : "⬜") + " 오늘의 문장 &nbsp; " + (st.w ? "✅" : "⬜") + " 단어 테스트" +
-      (r.needR ? " &nbsp; " + (r.r ? "✅" : "⬜") + " 복습" : "") + (r.needS || st.stDone ? " &nbsp; " + (st.stDone ? "✅" : "⬜") + " 이야기" : "") + (r.needD || st.dDone ? " &nbsp; " + (st.dDone ? "✅" : "⬜") + " 대화" : "") + (r.needSR || st.sr ? " &nbsp; " + (st.sr ? "✅" : "⬜") + " 문장 복습" : "") + "</div>" + body;
+      '<div class="small">' + [
+        r.needR ? [r.r, "단어 복습"] : null,
+        r.needSR || st.sr ? [st.sr, "문장 복습"] : null,
+        [st.w, "단어 테스트"],
+        [st.s, "오늘의 문장"],
+        r.needD || st.dDone ? [st.dDone, "대화"] : null,
+        r.needS || st.stDone ? [st.stDone, "이야기"] : null
+      ].filter(Boolean).map(function (x) { return (x[0] ? "✅" : "⬜") + " " + x[1]; }).join(" &nbsp; ") + "</div>" + body;
     Array.prototype.forEach.call($("dayBody").querySelectorAll("[data-say]"), function (b) {
       b.onclick = function (e) { e.stopPropagation(); TE.speak(b.dataset.say); };
     });
