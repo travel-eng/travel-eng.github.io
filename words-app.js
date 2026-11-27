@@ -234,7 +234,7 @@
     else startTest(set);
   }
   function wordListHtml(idx) {
-    return '<div style="margin-top:12px">' + idx.map(function (i) {
+    return '<div class="wl" style="margin-top:8px">' + idx.map(function (i) {
       var w = WORDS[i];
       return '<div class="list-item"><div class="txt"><div class="e">' + esc(w.en) + '</div><div class="k">' + esc(w.ko) +
         '</div></div><button data-say="' + esc(w.en) + '">🔊</button></div>';
