@@ -156,7 +156,7 @@
         if (g === "srev") { TE.showTab("srev"); return; }
         if (g === "story") { TE.showTab("story"); return; }
         if (g === "dlg") { TE.showTab("practice"); if (TE.openDialogs) TE.openDialogs(); return; }
-        if (g === "review") { mode = "review"; startReview(); }
+        if (g === "review") { mode = "review"; if (dueList().length) startReview(); else startPractice(); }
         else mode = "study";
         TE.showTab("words");
       };
@@ -314,6 +314,13 @@
     if (!quiz || quiz.review) quiz = { list: makeQuestions(set.idx, false), pos: 0, right: 0, review: false, wrongs: [] };
     renderQuiz();
   }
+  // 오늘 복습을 끝낸 뒤 "다시 보기": 오늘 복습한 단어로 한 번 더 (기록·간격은 안 바뀜)
+  function startPractice() {
+    var ids = (dayRec().rev || []).slice();
+    if (!ids.length) ids = Object.keys(state.learned).map(Number);
+    ids = shuffle(ids).slice(0, 20);
+    quiz = { list: makeQuestions(ids, true), pos: 0, right: 0, review: true, practice: true, wrongs: [] };
+  }
   function startReview() {
     var due = shuffle(dueList()).slice(0, 20);
     quiz = { list: makeQuestions(due, true), pos: 0, right: 0, review: true, wrongs: [] };
@@ -335,7 +342,7 @@
     var ask = q.type === "ko2en" ? '<div class="label">이 뜻의 영어 단어는?</div><div class="word-big">' + esc(w.ko) + "</div>"
       : q.type === "en2ko" ? '<div class="label">이 단어의 뜻은?</div><div class="word-big">' + esc(w.en) + "</div>"
       : '<div class="label">잘 듣고 뜻을 고르세요</div><div class="row"><button class="big primary" id="qPlay">🔊 다시 듣기</button></div>';
-    var title = quiz.review ? "🔁 복습" : "③ 테스트";
+    var title = quiz.practice ? "🔁 다시 복습 (연습)" : quiz.review ? "🔁 복습" : "③ 테스트";
     box('<div class="card"><div class="label">' + title + " · " + (quiz.pos + 1) + " / " + quiz.list.length + " · 맞힌 개수 " + quiz.right + "</div>" +
       '<div class="progress"><i style="width:' + (quiz.pos / quiz.list.length * 100) + '%"></i></div>' + ask +
       '<div class="choices">' + opts.map(function (o) {
@@ -349,7 +356,7 @@
         q.answered = true;
         var ok = +b.dataset.o === q.i;
         if (ok) quiz.right++; else quiz.wrongs.push(q.i);
-        if (quiz.review) { markReview(q.i, ok); addLog("rev", [q.i]); }
+        if (quiz.review && !quiz.practice) { markReview(q.i, ok); addLog("rev", [q.i]); }
         TE.save();
         Array.prototype.forEach.call($("wordsMain").querySelectorAll("[data-o]"), function (x) {
           if (+x.dataset.o === q.i) x.classList.add("right");
@@ -368,7 +375,7 @@
     var wrongHtml = quiz.wrongs.length ? '<div class="label" style="margin-top:12px">틀린 단어</div>' + wordListHtml(quiz.wrongs) : "";
     if (quiz.review) {
       var rec = dayRec();
-      if (!dueList().length) rec.r = true;
+      if (!quiz.practice && !dueList().length) rec.r = true;
       TE.save();
       box('<div class="card"><div class="en">🔁 복습 끝! ' + r + " / " + n + "</div>" +
         '<div class="ko">' + (quiz.wrongs.length ? "틀린 단어는 내일 다시 나와요." : "모두 맞혔어요! 다음 복습은 더 나중에 나와요.") + "</div>" +
