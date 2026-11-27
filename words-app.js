@@ -135,6 +135,16 @@
     if (st.all) html += '<div class="result ok" style="text-align:center">💮 오늘 다 했어요. 참 잘했어요!</div>';
     else html += '<div class="small" style="text-align:center;margin-top:6px">' + doneN + " / " + items.length + " 완료 · 다 하면 달력에 도장을 찍어 드려요</div>";
     $("todoList").innerHTML = html;
+    // 이번 주 (일~토) 도장 줄
+    var now = new Date(), wk = "일월화수목금토".split("").map(function (d) { return '<div class="dow">' + d + "</div>"; }).join("");
+    for (var wi = 0; wi < 7; wi++) {
+      var dd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + wi), key = TE.dateKey(dd);
+      var rec = state.cal[key] || {}, stt = dayStatus(key);
+      var mk = rec.stamp ? '<span class="mini-stamp">참잘</span>' : (stt.any ? '<span class="cal-dot"></span>' : "");
+      wk += '<div class="d' + (key === today() ? " today" : "") + '" data-day="' + key + '">' + dd.getDate() + mk + "</div>";
+    }
+    $("weekGrid").innerHTML = wk;
+    Array.prototype.forEach.call($("weekGrid").querySelectorAll("[data-day]"), function (c) { c.onclick = function () { showDay(c.dataset.day); }; });
     Array.prototype.forEach.call($("todoList").querySelectorAll("button[data-go]"), function (b) {
       b.onclick = function () {
         var g = b.dataset.go;
