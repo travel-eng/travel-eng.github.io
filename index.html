@@ -355,6 +355,15 @@ details.lk-box summary{color:var(--accent)}
 .lk-row{padding:5px 0;border-bottom:1px dashed var(--line);font-size:15px;cursor:pointer}
 .lk-k{color:var(--accent);font-weight:700}
 .lk-box .row button{flex:1;min-height:34px;font-size:14px}
+nav svg.ic{width:24px;height:24px;display:block;margin:0 auto 2px}
+nav button{font-size:13px}
+nav button.on svg.ic{stroke-width:2.4}
+#pracSeg{margin:0 0 8px}
+#pracSeg button{min-height:34px;padding:4px}
+.subhead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.subhead .back{min-height:28px;padding:2px 10px;font-size:13px}
+.todo button{min-height:32px;padding:3px 10px;font-size:13px;white-space:nowrap}
+.todo.done .t{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -372,9 +381,19 @@ details.lk-box summary{color:var(--accent)}
   <div id="browserWarn" class="card hidden"></div>
 
   <!-- 오늘의 문장 -->
-  <section id="tab-today">
+  <div id="pracSeg" class="seg hidden"><button data-sub="words">📖 단어</button><button data-sub="practice">🎤 말하기</button><button data-sub="game">🎮 게임</button></div>
+
+  <!-- 오늘 할 일 (첫 화면) -->
+  <section id="tab-todo">
     <div class="card">
-      <div class="label" id="todayDate">오늘의 문장</div>
+      <div class="label">✅ 오늘 할 일</div>
+      <div id="todoList"></div>
+    </div>
+  </section>
+
+  <section id="tab-today" class="hidden">
+    <div class="card">
+      <div class="subhead"><button class="back" data-back="todo">◀ 할 일</button><div class="label" id="todayDate" style="margin:0">오늘의 문장</div></div>
       <div class="seg mini" id="todaySeg"></div>
       <div class="en" id="todayEn"></div>
       <div class="ko" id="todayKo"></div>
@@ -389,10 +408,6 @@ details.lk-box summary{color:var(--accent)}
         <button class="big primary" id="todayDone">✔ 오늘 문장 외웠어요</button>
       </div>
       <div class="streak" id="streak"></div>
-    </div>
-    <div class="card">
-      <div class="label">오늘 할 일</div>
-      <div id="todoList"></div>
     </div>
   </section>
 
@@ -512,13 +527,11 @@ details.lk-box summary{color:var(--accent)}
 </main>
 
 <nav>
-  <button data-tab="today" class="on"><span class="ic">☀️</span>오늘</button>
-  <button data-tab="story"><span class="ic">🧳</span>여행</button>
-  <button data-tab="words"><span class="ic">📖</span>단어</button>
-  <button data-tab="game"><span class="ic">🎮</span>게임</button>
-  <button data-tab="practice"><span class="ic">🎤</span>말하기</button>
-  <button data-tab="cal"><span class="ic">📅</span>달력</button>
-  <button data-tab="settings"><span class="ic">⚙️</span>더보기</button>
+  <button data-tab="todo" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>할 일</button>
+  <button data-tab="story"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5a1.5 1.5 0 0 1 1.5-1.5h4A1.5 1.5 0 0 1 15.5 5v2M3 12.5h18"/></svg>여행</button>
+  <button data-tab="prac"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg>연습</button>
+  <button data-tab="cal"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8.5 14.5l2 2 4-4"/></svg>달력</button>
+  <button data-tab="settings"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18.5" cy="12" r="1.6"/></svg>더보기</button>
 </nav>
 
 <div id="stampModal" class="stamp-modal hidden" role="dialog" aria-label="참 잘했어요">

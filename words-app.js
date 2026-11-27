@@ -121,28 +121,33 @@
     var due = dueList().length;
     var set = todaySet();
     var items = [
-      { ok: st.s, t: "오늘의 문장 2개" + (function () { var d = state.daily[today()]; return d && d.dones ? " (" + d.dones.filter(Boolean).length + "/" + d.dones.length + ")" : ""; })(), btn: null },
-      { ok: st.w, t: set ? "오늘의 단어 (" + stageName(set.stage) + ")" : "단어 공부 (모두 배웠어요!)", btn: st.w ? null : "words" }
+      { ok: st.s, ic: "💬", t: "오늘의 문장 2개" + (function () { var d = state.daily[today()]; return d && d.dones ? " (" + d.dones.filter(Boolean).length + "/" + d.dones.length + ")" : ""; })(), go: "today" },
+      { ok: st.w, ic: "📖", t: set ? "오늘의 단어 (" + stageName(set.stage) + ")" : "단어 공부 (모두 배웠어요!)", go: "words" }
     ];
-    if (st.needS || st.stDone) items.push({ ok: st.stDone, t: "오늘의 이야기 (호주 여행)", btn: st.stDone ? null : "story" });
-    if (window.DIALOGS) items.push({ ok: st.dDone, t: "오늘의 대화 (듣고 대답하기 1장면)", btn: st.dDone ? null : "dlg" });
-    if (st.needR) items.push({ ok: st.r, t: "복습" + (due ? " (" + due + "개 남음)" : ""), btn: st.r ? null : "review" });
-    var html = items.map(function (it, k) {
-      return '<div class="todo"><span class="chk">' + (it.ok ? "✅" : "⬜") + '</span><span class="t">' + esc(it.t) + "</span>" +
-        (it.btn ? '<button data-go="' + it.btn + '">하러 가기</button>' : "") + "</div>";
+    if (st.needS || st.stDone) items.push({ ok: st.stDone, ic: "🧳", t: "오늘의 이야기 (호주 여행)", go: "story" });
+    if (window.DIALOGS) items.push({ ok: st.dDone, ic: "🗣️", t: "오늘의 대화 (듣고 대답하기)", go: "dlg" });
+    if (st.needR) items.push({ ok: st.r, ic: "🔁", t: "복습" + (due ? " (" + due + "개 남음)" : ""), go: "review" });
+    var html = items.map(function (it) {
+      return '<div class="todo' + (it.ok ? " done" : "") + '"><span class="chk">' + (it.ok ? "✅" : "⬜") + '</span><span class="t">' + it.ic + " " + esc(it.t) + "</span>" +
+        '<button data-go="' + it.go + '"' + (it.ok ? "" : ' class="primary"') + ">" + (it.ok ? "다시 보기" : "하러 가기") + "</button></div>";
     }).join("");
+    var doneN = items.filter(function (it) { return it.ok; }).length;
     if (st.all) html += '<div class="result ok" style="text-align:center">💮 오늘 다 했어요. 참 잘했어요!</div>';
+    else html += '<div class="small" style="text-align:center;margin-top:6px">' + doneN + " / " + items.length + " 완료 · 다 하면 달력에 도장을 찍어 드려요</div>";
     $("todoList").innerHTML = html;
     Array.prototype.forEach.call($("todoList").querySelectorAll("button[data-go]"), function (b) {
       b.onclick = function () {
-        if (b.dataset.go === "story") { TE.showTab("story"); return; }
-        if (b.dataset.go === "dlg") { TE.showTab("practice"); if (TE.openDialogs) TE.openDialogs(); return; }
-        if (b.dataset.go === "review") { mode = "review"; startReview(); }
+        var g = b.dataset.go;
+        if (g === "today") { TE.showTab("today"); return; }
+        if (g === "story") { TE.showTab("story"); return; }
+        if (g === "dlg") { TE.showTab("practice"); if (TE.openDialogs) TE.openDialogs(); return; }
+        if (g === "review") { mode = "review"; startReview(); }
         else mode = "study";
         TE.showTab("words");
       };
     });
   }
+  TE.renderTodo = renderTodo;
 
   // ---------- 달력 ----------
   var calY, calM;
