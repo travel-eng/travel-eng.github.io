@@ -1,4 +1,4 @@
-// 💬 듣고 대답하기 (말하기 탭 안)
+// 🎧 듣고 대답하기 (말하기 탭 안)
 (function () {
   var TE = window.TE, $ = TE.$, esc = TE.esc, state = TE.state;
   var DL = window.DIALOGS || [];
@@ -66,7 +66,7 @@
   function renderList() {
     stopRec(); cur = null;
     var ti = todayIdx(), anyToday = DL.some(function (d) { return doneToday(d.id); }) || doneToday("mine");
-    wrap().innerHTML = '<div class="card"><div class="label">💬 듣고 대답하기 · ' + (anyToday ? "✅ 오늘 할 일 완료! 더 해도 좋아요" : "오늘 한 장면 하기 (⭐ 추천)") + "</div>" +
+    wrap().innerHTML = '<div class="card"><div class="label">🎧 듣고 대답하기 · ' + (anyToday ? "✅ 오늘 할 일 완료! 더 해도 좋아요" : "오늘 한 장면 하기 (⭐ 추천)") + "</div>" +
       '<div class="small">상대가 영어로 물어보면 🎤로 대답해요. 뜻이 통하면 통과예요. ✅는 오늘 한 것 (매일 새로 시작해요).</div>' +
       '<div class="dlg-grid"><button class="dlg-pick" id="dlgMine"><span class="ic">📚</span><b>내가 배운 문장</b><span class="small">배운 ' + learnedPool().length + "개 중 5개" + (doneToday("mine") ? " ✅" : "") + "</span></button>" + DL.map(function (d, i) {
         return '<button class="dlg-pick' + (i === ti ? " today" : "") + '" data-i="' + i + '"><span class="ic">' + d.icon + (i === ti ? ' <span class="small">⭐ 오늘</span>' : "") + "</span><b>" + esc(d.title) + '</b><span class="small">' + esc(d.scene) + " · " + d.turns.length + "번" + (doneToday(d.id) ? " ✅" : "") + "</span></button>";
@@ -76,7 +76,7 @@
     });
     $("dlgMine").onclick = function () {
       var sc = mineScene();
-      if (!sc.turns.length) { wrap().querySelector(".small").innerHTML = "아직 배운 문장이 없어요. ☀️오늘 탭에서 문장을 외우거나 🔁따라 말하기에 성공하면 여기 나와요."; return; }
+      if (!sc.turns.length) { wrap().querySelector(".small").innerHTML = "아직 배운 문장이 없어요. 할 일의 📝 오늘의 문장을 외우거나 🗣️ 따라 말하기에 성공하면 여기 나와요."; return; }
       start(sc);
     };
   }
@@ -175,7 +175,7 @@
     if (TE.checkDay) TE.checkDay();
     wrap().innerHTML = '<div class="card" style="text-align:center"><div style="font-size:40px">' + cur.d.icon + '</div><div class="en">대화 끝! 🎉</div>' +
       '<div class="ko">한 번에 통과: ' + cur.firstOk + " / " + n + "</div>" +
-      (first ? '<div class="result ok">✅ 오늘의 대화 완료!</div>' : enough ? "" : '<div class="result info">건너뛴 게 많아서 오늘 할 일로는 안 쳐요. 절반 이상 대답해 봐요!</div>') +
+      (first ? '<div class="result ok">✅ 오늘의 듣고 대답하기 완료!</div>' : enough ? "" : '<div class="result info">건너뛴 게 많아서 오늘 할 일로는 안 쳐요. 절반 이상 대답해 봐요!</div>') +
       '<div class="small">' + (cur.firstOk === n ? "완벽해요! 실제 여행에서도 이렇게 하면 돼요." : "한 번 더 하면 더 자연스러워져요.") + "</div>" +
       '<div class="row"><button id="dlgAgain">🔁 다시 하기</button><button class="primary" id="dlgList">다른 장면 ▶</button></div></div>';
     var d = cur.d;

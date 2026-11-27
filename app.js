@@ -2,7 +2,7 @@
   "use strict";
 
   // ---------- 저장 ----------
-  var APP_VERSION = "1.37 (2026-11-27)";
+  var APP_VERSION = "1.38 (2026-11-27)";
   var KEY = "travelEnglish.v1";
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
@@ -313,7 +313,7 @@
     var s = todaySentence();
     var d = new Date();
     var rec = state.daily[dateKey()];
-    $("todayDate").textContent = (d.getMonth() + 1) + "월 " + d.getDate() + "일 · 오늘의 문장 " + (todayCur + 1) + "/" + DAILY_N;
+    $("todayDate").textContent = (d.getMonth() + 1) + "월 " + d.getDate() + "일 · 📝 오늘의 문장 " + (todayCur + 1) + "/" + DAILY_N;
     $("todaySeg").innerHTML = rec.ids.map(function (id, i) {
       return '<button data-i="' + i + '" class="' + (i === todayCur ? "on" : "") + '">' + (rec.dones[i] ? "✅ " : "") + "문장 " + (i + 1) + "</button>";
     }).join("");
@@ -402,8 +402,18 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function showResult(el, kind, html) { el.innerHTML = '<div class="result ' + kind + '">' + html + "</div>"; }
   function alertBox(msg) { var w = $("browserWarn"); w.textContent = msg; w.classList.remove("hidden"); }
-  function showTab(name) {
+  function showTab(name, fromTodo) {
     if (name === "prac") name = "words";
+    // 할 일에서 들어간 화면이면 맨 위에 "◀ 할 일" 줄을 붙이기 (다른 탭을 누르면 사라짐)
+    Array.prototype.forEach.call(document.querySelectorAll(".todo-back"), function (x) { x.parentNode.removeChild(x); });
+    if (fromTodo && $("tab-" + name)) {
+      var bar = document.createElement("div");
+      bar.className = "subhead todo-back";
+      bar.innerHTML = '<button class="back">◀ 할 일</button><div class="label" style="margin:0"></div>';
+      bar.querySelector(".label").textContent = fromTodo;
+      bar.querySelector("button").onclick = function () { showTab("todo"); };
+      $("tab-" + name).insertBefore(bar, $("tab-" + name).firstChild);
+    }
     ["todo", "today", "srev", "story", "words", "game", "practice", "cal", "settings"].forEach(function (t) {
       $("tab-" + t).classList.toggle("hidden", t !== name);
     });
@@ -494,7 +504,7 @@
   window.__te = { compare: compare, tokens: tokens, levelOf: levelOf };
   window.TE = {
     state: state, save: save, speak: speak, listen: listen, compare: compare, tokens: tokens,
-    dateKey: dateKey, esc: esc, $: $, showResult: showResult, showTab: function (n) { showTab(n); },
+    dateKey: dateKey, esc: esc, $: $, showResult: showResult, showTab: function (n, from) { showTab(n, from); }, renderList: function () { renderList(); },
     allSentences: allSentences, byId: byId, version: APP_VERSION
   };
   init();

@@ -131,7 +131,7 @@
   // 문장 공부 창 (달력 등에서 다시 보기). 연습만 하고 기록은 바꾸지 않음
   function showStudy(en, ko, title) {
     if (TE.cancelListen) TE.cancelListen();
-    $("stTitle").textContent = title || "💬 문장 다시 보기";
+    $("stTitle").textContent = title || "📝 문장 다시 보기";
     $("stEn").textContent = en;
     $("stKo").textContent = ko || "";
     $("stResult").innerHTML = "";
@@ -302,6 +302,10 @@
     mode = m;
     Array.prototype.forEach.call($("srSeg").querySelectorAll("button"), function (b) { b.classList.toggle("on", b.dataset.m === m); });
     $("srInput").placeholder = m === "idm" ? "숙어 거르기 (예: 카드, get)" : "한국어나 영어로 찾기 (예: 통로, 화장실)";
+    var all = m === "all";
+    $("srInput").classList.toggle("hidden", all); $("srBody").classList.toggle("hidden", all);
+    if ($("srAll")) $("srAll").classList.toggle("hidden", !all);
+    if (all) { if (TE.renderList) TE.renderList(); return; }
     search();
   }
   function idmList(q) {

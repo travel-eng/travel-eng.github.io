@@ -49,7 +49,7 @@
 
   function render() {
     var S = todaySet(), box = $("srevMain");
-    var top = '<div class="subhead"><button class="back" data-back2="todo">◀ 할 일</button><div class="label" style="margin:0">🧠 문장 복습 카드</div></div>';
+    var top = '<div class="subhead"><button class="back" data-back2="todo">◀ 할 일</button><div class="label" style="margin:0">🧠 문장 복습</div></div>';
     if (!S.ids.length) {
       box.innerHTML = top + '<div class="result info">오늘 복습할 문장이 없어요. 문장을 외우면(✔ 외웠어요, 따라 말하기 성공, 이야기) 다음 날부터 여기 나와요.</div>' + plan();
       bindTop(); return;
