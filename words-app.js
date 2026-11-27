@@ -123,14 +123,14 @@
     var st = dayStatus(today());
     var due = dueList().length;
     var set = todaySet();
-    var items = [
-      { ok: st.s, ic: "💬", t: "오늘의 문장" + (function () { var d = state.daily[today()]; return d && d.dones ? " (" + d.dones.filter(Boolean).length + "/" + d.dones.length + ")" : ""; })(), go: "today" },
-      { ok: st.w, ic: "📖", t: set ? "단어 (" + stageName(set.stage) + ")" : "단어 (모두 배웠어요!)", go: "words" }
-    ];
-    if (st.needS || st.stDone) items.push({ ok: st.stDone, ic: "🧳", t: "이야기 (" + (TE.storyTripName ? TE.storyTripName().replace(" 여행", "") : "여행") + ")", go: "story" });
-    if (st.needSR || st.sr || (TE.sentDue && TE.sentDue() > 0)) items.push({ ok: st.sr, ic: "🧠", t: "문장 복습" + (TE.sentTodayLabel ? TE.sentTodayLabel() : ""), go: "srev" });
-    if (window.DIALOGS) items.push({ ok: st.dDone, ic: "🗣️", t: "듣고 대답하기 1장면", go: "dlg" });
+    // 순서: 복습(단어 → 문장) → 오늘의 단어 → 오늘의 문장 → 대화 → 이야기
+    var items = [];
     if (st.needR) items.push({ ok: st.r, ic: "🔁", t: "단어 복습" + (due ? " (" + due + "개)" : ""), go: "review" });
+    if (st.needSR || st.sr || (TE.sentDue && TE.sentDue() > 0)) items.push({ ok: st.sr, ic: "🧠", t: "문장 복습" + (TE.sentTodayLabel ? TE.sentTodayLabel() : ""), go: "srev" });
+    items.push({ ok: st.w, ic: "📖", t: set ? "단어 (" + stageName(set.stage) + ")" : "단어 (모두 배웠어요!)", go: "words" });
+    items.push({ ok: st.s, ic: "💬", t: "오늘의 문장" + (function () { var d = state.daily[today()]; return d && d.dones ? " (" + d.dones.filter(Boolean).length + "/" + d.dones.length + ")" : ""; })(), go: "today" });
+    if (window.DIALOGS) items.push({ ok: st.dDone, ic: "🗣️", t: "듣고 대답하기 1장면", go: "dlg" });
+    if (st.needS || st.stDone) items.push({ ok: st.stDone, ic: "🧳", t: "이야기 (" + (TE.storyTripName ? TE.storyTripName().replace(" 여행", "") : "여행") + ")", go: "story" });
     var html = items.map(function (it) {
       return '<div class="todo' + (it.ok ? " done" : "") + '"><span class="chk">' + (it.ok ? "✅" : "⬜") + '</span><span class="t">' + it.ic + " " + esc(it.t) + "</span>" +
         '<button data-go="' + it.go + '"' + (it.ok ? "" : ' class="primary"') + ">" + (it.ok ? "다시 보기" : "하러 가기") + "</button></div>";
