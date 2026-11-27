@@ -20,38 +20,69 @@
   // 오늘 새로 할 수 있는 화 (-1: 없음)
   TE.storyAvailable = function () { var n = nextEp(); return n >= 0 && unlocked(n) ? n : -1; };
 
+  // ---------- 여러 여행지 ----------
+  var TRIPS = S.trips || [{ city: S.city, country: S.country, flag: S.flag, stamp: "SYDNEY", from: 0, to: EPS.length - 1 }];
+  function tripOf(i) { for (var t = 0; t < TRIPS.length; t++) if (i >= TRIPS[t].from && i <= TRIPS[t].to) return TRIPS[t]; return TRIPS[0]; }
+  function num(i) { return i - tripOf(i).from + 1; }
+  function tripDone(T) { for (var i = T.from; i <= T.to; i++) if (!state.story.done[i]) return false; return true; }
+  function curTrip() { var n = nextEp(); return n >= 0 ? tripOf(n) : TRIPS[TRIPS.length - 1]; }
+  TE.storyTripName = function () { var T = curTrip(); return T.flag + " " + T.city + " 여행"; };
+  TE.storyLabel = function (i) { var ep = EPS[i]; return ep ? tripOf(i).flag + " " + tripOf(i).city + " " + num(i) + "화 " + ep.icon + " " + ep.title : ""; };
+  var viewT = null;
+
   // ---------- 여행 지도 ----------
   function home() {
-    var n = nextEp(), dc = doneCount();
-    var html = '<div class="card"><div class="label">' + S.flag + " " + S.country + " " + S.city + " 여행 · " + dc + "/" + EPS.length + "화</div>" +
-      '<div class="progress"><i style="width:' + (dc / EPS.length * 100) + '%"></i></div>';
-    if (n >= 0 && unlocked(n)) {
-      html += '<div class="en">' + EPS[n].icon + " " + (n + 1) + "화 " + esc(EPS[n].title) + '</div><div class="row"><button class="big primary" data-ep="' + n + '">▶ 오늘의 이야기 시작</button></div>';
-    } else if (n >= 0) {
-      html += '<div class="result info">🌙 다음 이야기 <b>' + (n + 1) + "화</b>는 <b>내일</b> 열려요. 두근두근!</div>" +
-        '<div class="ko" style="margin-top:8px">지난 이야기: ' + esc(EPS[n - 1].teaser) + "</div>";
+    var n = nextEp(), T = curTrip();
+    var V = viewT || T;
+    var tot = V.to - V.from + 1, dc = 0;
+    for (var i = V.from; i <= V.to; i++) if (state.story.done[i]) dc++;
+    var html = "";
+    if (TRIPS.length > 1) html += '<div class="seg mini" id="tripSeg">' + TRIPS.map(function (t, k) {
+      var open = t.from <= (n < 0 ? EPS.length : n);
+      return '<button data-t="' + k + '" class="' + (t === V ? "on" : "") + '">' + (tripDone(t) ? "✅ " : open ? "" : "🔒 ") + t.flag + " " + esc(t.city) + "</button>";
+    }).join("") + "</div>";
+    html += '<div class="card"><div class="label">' + V.flag + " " + V.country + " " + V.city + " 여행 · " + dc + "/" + tot + "화</div>" +
+      '<div class="progress"><i style="width:' + (dc / tot * 100) + '%"></i></div>';
+    if (V === T) {
+      if (n >= 0 && unlocked(n)) {
+        html += '<div class="en">' + EPS[n].icon + " " + num(n) + "화 " + esc(EPS[n].title) + '</div><div class="row"><button class="big primary" data-ep="' + n + '">▶ 오늘의 이야기 시작</button></div>';
+      } else if (n >= 0) {
+        html += '<div class="result info">🌙 다음 이야기 <b>' + (n === T.from ? T.city + " 여행 1화" : num(n) + "화") + "</b>는 <b>내일</b> 열려요. 두근두근!</div>" +
+          '<div class="ko" style="margin-top:8px">지난 이야기: ' + esc(EPS[n - 1].teaser) + "</div>";
+      } else {
+        html += '<div class="result ok">🎉 모든 여행 완주! 여권에 도장이 찍혔어요.</div>';
+      }
+    } else if (tripDone(V)) {
+      html += '<div class="result ok">🎉 ' + V.city + " 여행 완주! 다시 보고 싶은 화를 눌러요.</div>";
     } else {
-      html += '<div class="result ok">🎉 ' + S.city + " 여행 완주! 여권에 도장이 찍혔어요.</div>";
+      html += '<div class="result info">앞 여행을 마치면 ' + V.city + " 여행이 열려요.</div>";
     }
     html += "</div>";
-    html += '<div class="card"><div class="label">🗺️ 여행 일정</div>' + EPS.map(function (ep, i) {
+    var rows = [];
+    for (var j = V.from; j <= V.to; j++) (function (i) {
+      var ep = EPS[i];
       var st = state.story.done[i] ? "✅" : unlocked(i) ? "🔓" : "🔒";
       var can = state.story.done[i] || unlocked(i);
-      return '<div class="list-item"><div class="txt"><div class="e">' + st + " " + (i + 1) + "화 " + ep.icon + " " + esc(ep.title) + "</div>" +
+      rows.push('<div class="list-item"><div class="txt"><div class="e">' + st + " " + num(i) + "화 " + ep.icon + " " + esc(ep.title) + "</div>" +
         (state.story.done[i] ? '<div class="k">' + esc(state.story.done[i]) + " 완료</div>" : (can ? "" : '<div class="k">' + (i === n ? "내일 열려요" : "앞 이야기를 먼저 해요") + "</div>")) +
-        "</div>" + (can ? '<button data-ep="' + i + '">' + (state.story.done[i] ? "다시 보기" : "시작") + "</button>" : "") + "</div>";
-    }).join("") + "</div>";
+        "</div>" + (can ? '<button data-ep="' + i + '">' + (state.story.done[i] ? "다시 보기" : "시작") + "</button>" : "") + "</div>");
+    })(j);
+    html += '<div class="card"><div class="label">🗺️ 여행 일정</div>' + rows.join("") + "</div>";
     html += passportHtml();
     box(html);
     Array.prototype.forEach.call($("storyMain").querySelectorAll("[data-ep]"), function (b) {
       b.onclick = function () { startEp(+b.dataset.ep); };
     });
+    Array.prototype.forEach.call($("storyMain").querySelectorAll("#tripSeg [data-t]"), function (b) {
+      b.onclick = function () { viewT = TRIPS[+b.dataset.t]; home(); };
+    });
   }
   function passportHtml() {
-    var full = doneCount() === EPS.length;
-    return '<div class="card passport"><div class="label">🛂 내 여권</div><div class="pp-stamps">' +
-      '<div class="pp-stamp' + (full ? " on" : "") + '"><b>' + esc(S.city.toUpperCase ? "SYDNEY" : S.city) + "</b><span>" + S.flag + " " + S.city + "</span><small>" + (full ? esc(state.story.done[EPS.length - 1]) : "여행 중") + "</small></div>" +
-      '<div class="pp-stamp empty"><b>?</b><span>다음 여행지</span><small>' + (full ? "같이 정해요" : "") + "</small></div>" +
+    return '<div class="card passport"><div class="label">🛂 내 여권</div><div class="pp-stamps">' + TRIPS.map(function (T) {
+      var full = tripDone(T);
+      return '<div class="pp-stamp' + (full ? " on" : "") + '"><b>' + esc(T.stamp) + "</b><span>" + T.flag + " " + esc(T.city) + "</span><small>" + (full ? esc(state.story.done[T.to]) : "여행 중") + "</small></div>";
+    }).join("") +
+      '<div class="pp-stamp empty"><b>?</b><span>다음 여행지</span><small>' + (tripDone(TRIPS[TRIPS.length - 1]) ? "같이 정해요" : "") + "</small></div>" +
       "</div></div>";
   }
 
@@ -66,7 +97,7 @@
       return '<span class="' + (k < E.step ? "done" : k === E.step ? "on" : "") + '">' + n + "</span>";
     }).join("") + "</div>";
   }
-  function head() { return '<div class="label">' + S.flag + " " + (E.i + 1) + "화 · " + esc(E.ep.title) + "</div>" + stepsBar(); }
+  function head() { var T = tripOf(E.i); return '<div class="label">' + T.flag + " " + T.city + " " + num(E.i) + "화 · " + esc(E.ep.title) + "</div>" + stepsBar(); }
 
   function renderIntro() {
     var ep = E.ep;
@@ -219,7 +250,7 @@
       return;
     }
     var first = !state.story.done[E.i];
-    var last = E.i === EPS.length - 1;
+    var T = tripOf(E.i), last = E.i === T.to;
     if (first) {
       state.story.done[E.i] = today();
       if (TE.learnWords) TE.learnWords(E.ep.wordIdx);
@@ -228,18 +259,18 @@
       TE.save();
     }
     box('<div class="card" style="text-align:center">' + '<div class="story-icon">' + E.ep.icon + "</div>" +
-      '<div class="en">🎉 ' + (E.i + 1) + "화 완료! (" + pct + "%)</div>" +
+      '<div class="en">🎉 ' + num(E.i) + "화 완료! (" + pct + "%)</div>" +
       (first ? '<div class="ko">핵심 단어 ' + E.ep.wordIdx.length + "개가 단어장과 복습에 들어갔어요.</div>" : "") +
       '<div class="teaser"><div class="label">' + (last ? "에필로그" : "📺 다음 이야기 예고") + "</div>" + esc(E.ep.teaser) + "</div>" +
-      (last ? "" : '<div class="small">' + (E.i + 2) + "화는 내일 열려요!</div>") +
+      (last ? (E.i < EPS.length - 1 ? '<div class="small">✈️ 내일부터 ' + esc(tripOf(E.i + 1).city) + " 여행이 시작돼요!</div>" : "") : '<div class="small">' + (num(E.i) + 1) + "화는 내일 열려요!</div>") +
       '<div class="row"><button class="big primary" id="sHome">여행 지도로</button></div></div>');
-    $("sHome").onclick = home;
+    $("sHome").onclick = function () { viewT = null; home(); };
     if (first && TE.checkDay) TE.checkDay();
-    if (first && last) showPassportStamp();
+    if (first && last) showPassportStamp(T);
   }
-  function showPassportStamp() {
-    $("bigStamp").innerHTML = "<span>SYDNEY<br>" + S.flag + "</span>";
-    $("stampMsg").textContent = S.city + " 여행 완주! 여권에 도장을 찍었어요 🛂";
+  function showPassportStamp(T) {
+    $("bigStamp").innerHTML = "<span>" + T.stamp + "<br>" + T.flag + "</span>";
+    $("stampMsg").textContent = T.city + " 여행 완주! 여권에 도장을 찍었어요 🛂";
     $("stampModal").classList.remove("hidden");
     var close = $("stampClose").onclick;
     $("stampClose").onclick = function () {
@@ -250,7 +281,7 @@
   }
 
   TE.renderStory = function () { if (!E) home(); else if (E.step === 0) renderIntro(); else if (E.step === 1) renderChat(); else renderMission(); };
-  TE.storyHome = function () { E = null; home(); };
+  TE.storyHome = function () { E = null; viewT = null; home(); };
   TE._s = { E: function () { return E; } };
 })();
 
@@ -260,7 +291,7 @@
   var LINES = [
     "슝슝~ 오늘도 같이 떠나 볼까요?", "천천히 해도 괜찮아요 🌱", "틀려도 괜찮아요. 그게 배우는 거예요!",
     "G'day! 호주식 '안녕'이에요 🇦🇺", "한 문장씩, 한 걸음씩 👣", "소리 내어 말하면 더 오래 기억나요 🔊",
-    "No worries! 걱정 마요 😊", "오늘의 이야기가 기다리고 있어요 📖", "잘하고 있어요. 정말로요! ✨"
+    "No worries! 걱정 마요 😊", "Xin chào! 베트남어로 '안녕하세요'예요 🇻🇳", "오늘의 이야기가 기다리고 있어요 📖", "잘하고 있어요. 정말로요! ✨"
   ];
   function say() {
     var st = TE.state, k = TE.dateKey(), r = (st.cal || {})[k] || {};

@@ -9,7 +9,7 @@
     if (f.length < 4) return;
     DICT[f[0]] = {
       w: f[0], ipa: f[1], ko: f[2], tip: f[4] || "",
-      chunks: f[3].split(/ (?=[^ ]*=)/).map(function (c) { var k = c.indexOf("="); return { l: c.slice(0, k), s: c.slice(k + 1) }; })
+      chunks: f[3] ? f[3].split(/ (?=[^ ]*=)/).filter(function (c) { return c.indexOf("=") > 0; }).map(function (c) { var k = c.indexOf("="); return { l: c.slice(0, k), s: c.slice(k + 1) }; }) : []
     };
   });
   function keyOf(word) {
@@ -56,7 +56,7 @@
     if (meaning) html += '<div class="ko" style="text-align:center">' + esc(meaning) + "</div>";
     if (d) {
       html += '<div class="ph-ipa">[' + esc(d.ipa) + ']</div><div class="ph-ko">≈ ' + esc(d.ko) + "</div>";
-      html += '<div class="label" style="text-align:center">글자를 누르면 다시 들려요 · 이렇게 소리 나요</div><div class="ph-chunks">' + d.chunks.map(function (c) {
+      if (d.chunks.length) html += '<div class="label" style="text-align:center">글자를 누르면 다시 들려요 · 이렇게 소리 나요</div><div class="ph-chunks">' + d.chunks.map(function (c) {
         var silent = c.s.indexOf("소리 안 남") >= 0;
         return '<div class="ph-chunk' + (silent ? " silent" : "") + '"><div class="l">' + esc(c.l) + '</div><div class="s">' + esc(silent ? "묵음" : c.s) + "</div></div>";
       }).join("") + "</div>";

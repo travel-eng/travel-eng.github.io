@@ -124,7 +124,7 @@
       { ok: st.s, ic: "💬", t: "오늘의 문장 2개" + (function () { var d = state.daily[today()]; return d && d.dones ? " (" + d.dones.filter(Boolean).length + "/" + d.dones.length + ")" : ""; })(), go: "today" },
       { ok: st.w, ic: "📖", t: set ? "오늘의 단어 (" + stageName(set.stage) + ")" : "단어 공부 (모두 배웠어요!)", go: "words" }
     ];
-    if (st.needS || st.stDone) items.push({ ok: st.stDone, ic: "🧳", t: "오늘의 이야기 (호주 여행)", go: "story" });
+    if (st.needS || st.stDone) items.push({ ok: st.stDone, ic: "🧳", t: "오늘의 이야기 (" + (TE.storyTripName ? TE.storyTripName() : "여행") + ")", go: "story" });
     if (window.DIALOGS) items.push({ ok: st.dDone, ic: "🗣️", t: "오늘의 대화 (듣고 대답하기)", go: "dlg" });
     if (st.needR) items.push({ ok: st.r, ic: "🔁", t: "복습" + (due ? " (" + due + "개 남음)" : ""), go: "review" });
     var html = items.map(function (it) {
@@ -468,8 +468,8 @@
     var words = (r.words || []).map(function (i) { return WORDS[i]; });
     var rev = (r.rev || []).filter(function (i) { return (r.words || []).indexOf(i) < 0; }).map(function (i) { return WORDS[i]; });
     var sents = (r.sent || []).map(function (id) { return TE.byId(id); }).filter(Boolean);
-    var eps = (r.story || []).map(function (n) { var ep = window.STORY.episodes[n]; return ep ? { en: ep.icon + " " + (n + 1) + "화 " + ep.title, ko: ep.key, say: ep.key } : null; }).filter(Boolean);
-    var body = (eps.length ? '<div class="label" style="margin-top:14px">🇦🇺 호주 여행 이야기</div>' + eps.map(function (x) {
+    var eps = (r.story || []).map(function (n) { var ep = window.STORY.episodes[n]; return ep ? { en: TE.storyLabel ? TE.storyLabel(n) : ep.icon + " " + (n + 1) + "화 " + ep.title, ko: ep.key, say: ep.key } : null; }).filter(Boolean);
+    var body = (eps.length ? '<div class="label" style="margin-top:14px">🧳 여행 이야기</div>' + eps.map(function (x) {
       return '<div class="list-item" data-st="' + esc(x.say) + '" data-ko=""><div class="txt"><div class="e">' + esc(x.en) + '</div><div class="k">핵심 문장: ' + esc(x.ko) + '</div></div><button data-say="' + esc(x.say) + '">🔊</button></div>';
     }).join("") : "") + sec("📖 새로 배운 단어 (" + words.length + ")", words) +
       sec("🔁 복습한 단어 (" + rev.length + ")", rev) +
